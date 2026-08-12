@@ -41,3 +41,30 @@ example
 # generated native folders
 /ios
 /android
+
+# Antigravity / Agent Artifacts
+.artifacts/
+.gemini/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env*
+!.env.example
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+
+# Expo Application Services (EAS)
+.eas/
+
+# AI Assistants
+.claude/
