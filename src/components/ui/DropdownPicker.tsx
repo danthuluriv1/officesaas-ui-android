@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, StyleProp, ViewStyle, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, StyleProp, ViewStyle, Dimensions } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -26,7 +26,7 @@ export function DropdownPicker<T = string | number>({
   containerStyle,
 }: DropdownPickerProps<T>) {
   const [modalVisible, setModalVisible] = useState(false);
-  const selectedOption = options.find((o) => o.value === selectedValue);
+  const selectedOption = options?.find((o) => o && o.value === selectedValue);
 
   return (
     <View style={[styles.dropdownContainer, containerStyle]}>
@@ -44,26 +44,28 @@ export function DropdownPicker<T = string | number>({
           onPress={() => setModalVisible(false)}
         >
           <View style={styles.dropdownMenu}>
-            <FlatList
-              data={options}
-              keyExtractor={(item, index) => String(item.value ?? index)}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    onSelect(item.value);
-                    setModalVisible(false);
-                  }}
-                >
-                  <Text style={[
-                    styles.dropdownItemText,
-                    selectedValue === item.value && styles.dropdownItemTextSelected
-                  ]}>
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {options?.map((item, index) => {
+                if (!item) return null;
+                return (
+                  <TouchableOpacity
+                    key={`dropdown-item-${index}-${item.value}`}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      onSelect(item.value);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.dropdownItemText,
+                      selectedValue === item.value ? styles.dropdownItemTextSelected : undefined
+                    ]}>
+                      {item.label ? String(item.label) : placeholder}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>

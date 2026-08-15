@@ -4,6 +4,8 @@ import { AppText as Text } from '../../../components/AppText';
 import { router, useFocusEffect } from 'expo-router';
 import axiosClient from '../../../api/axiosClient';
 import { useNotifications } from '../../../context/NotificationContext';
+import { getItem } from '../../../utils/storage';
+import { decodeJwt } from '../../../utils/jwt';
 
 const modules = [
   { id: 'clients', title: 'Clients', description: 'Manage client profiles and details', icon: '🏢', color: '#FEE2E2' },
@@ -26,13 +28,34 @@ export default function ModulesScreen() {
   const [unreadCount, setUnreadCount] = useState(0); // Messages
   const [refreshing, setRefreshing] = useState(false);
   const { refreshNotificationCount } = useNotifications();
+  const [userRole, setUserRole] = useState<string>('');
+  const [modulePermissions, setModulePermissions] = useState<Record<string, string[]> | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       fetchUnreadCount();
       refreshNotificationCount();
+      loadUserAndPermissions();
     }, [])
   );
+
+  const loadUserAndPermissions = async () => {
+    try {
+      const token = await getItem('saas_token');
+      if (token) {
+        const claims = decodeJwt(token);
+        if (claims) {
+          setUserRole(claims.role);
+        }
+      }
+      const res = await axiosClient.get('/Settings/profile');
+      if (res.data?.isSuccess && res.data?.data?.modulePermissions) {
+        setModulePermissions(res.data.data.modulePermissions);
+      }
+    } catch (e) {
+      console.warn('Failed to load permissions', e);
+    }
+  };
 
   const fetchUnreadCount = async () => {
     try {
@@ -49,9 +72,16 @@ export default function ModulesScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([fetchUnreadCount(), refreshNotificationCount()]);
+    await Promise.all([fetchUnreadCount(), refreshNotificationCount(), loadUserAndPermissions()]);
     setRefreshing(false);
   }, []);
+
+  const visibleModules = modules.filter(mod => {
+    if (userRole === 'SuperAdmin' || userRole === 'OfficeAdmin') return true;
+    if (!modulePermissions) return true; // Show all if permissions not loaded yet to prevent flickering empty state
+    const roleModules = modulePermissions[userRole] || [];
+    return roleModules.includes(mod.id);
+  });
 
   return (
     <ScrollView
@@ -60,7 +90,7 @@ export default function ModulesScreen() {
     >
       <Text style={styles.header}>All Modules</Text>
       <View style={styles.grid}>
-        {modules.map((mod) => (
+        {visibleModules.map((mod) => (
           <TouchableOpacity
             key={mod.id}
             style={styles.card}

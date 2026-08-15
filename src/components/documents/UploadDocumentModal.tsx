@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Modal, Platform } from 'react-native';
 import { AppText as Text } from '../AppText';
@@ -64,6 +65,7 @@ export function UploadDocumentModal({ visible, onClose, categories }: UploadDocu
 
     return (
         <Modal visible={visible} animationType="slide" transparent>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>Upload Document</Text>
@@ -116,14 +118,15 @@ export function UploadDocumentModal({ visible, onClose, categories }: UploadDocu
                     </View>
                 </View>
             </View>
-        </Modal>
+        </SafeAreaView>
+    </Modal>
     );
 }
 
 const styles = StyleSheet.create({
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalContent: { backgroundColor: Theme.colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 },
-    modalTitle: { fontSize: 20, fontWeight: '700', color: Theme.colors.text, marginBottom: 20 },
+    modalTitle: { fontSize: 20, fontWeight: '700', color: Theme.colors.textPrimary, marginBottom: 20 },
     selectFileBtn: { backgroundColor: Theme.colors.background, borderWidth: 1, borderColor: Theme.colors.borderDark, borderStyle: 'dashed', borderRadius: 12, padding: 20, alignItems: 'center', marginBottom: 12 },
     selectFileBtnText: { color: Theme.colors.textSecondary, fontSize: 15, fontWeight: '500' },
     selectedFileName: { fontSize: 13, color: Theme.colors.success, marginBottom: 16, textAlign: 'center', fontWeight: '500' },

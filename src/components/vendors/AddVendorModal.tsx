@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { Theme } from '../../theme';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
@@ -104,6 +105,7 @@ export const AddVendorModal: React.FC<AddVendorModalProps> = ({ visible, onClose
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <LocationPicker
         visible={pickerVisible}
         onClose={() => setPickerVisible(false)}
@@ -238,6 +240,7 @@ export const AddVendorModal: React.FC<AddVendorModalProps> = ({ visible, onClose
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+    </SafeAreaView>
     </Modal>
   );
 };

@@ -34,12 +34,12 @@ export function ClientCard({ item, onPress, onAction, isRefreshing }: ClientCard
             onPanResponderMove: (evt, gestureState) => {
                 if (gestureState.dx < 0) { 
                     pan.setValue({ x: Math.max(gestureState.dx, -ACTION_WIDTH * 1.5), y: 0 });
-                } else if (gestureState.dx > 0 && pan.x._value < 0) {
+                } else if (gestureState.dx > 0 && (pan.x as any)._value < 0) {
                     pan.setValue({ x: Math.min(0, -ACTION_WIDTH + gestureState.dx), y: 0 });
                 }
             },
             onPanResponderRelease: (evt, gestureState) => {
-                if (gestureState.dx < -ACTION_WIDTH / 2 || pan.x._value < -ACTION_WIDTH / 1.5) {
+                if (gestureState.dx < -ACTION_WIDTH / 2 || (pan.x as any)._value < -ACTION_WIDTH / 1.5) {
                     Animated.spring(pan, {
                         toValue: { x: -ACTION_WIDTH, y: 0 },
                         useNativeDriver: true,

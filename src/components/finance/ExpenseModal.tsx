@@ -1,10 +1,14 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { Theme } from '../../theme';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { FinanceService } from '../../api/financeService';
+import { documentService } from '../../api/documentService';
 import { DropdownPicker, DropdownOption } from '../ui/DropdownPicker';
 import { DatePickerField } from '../ui/DatePickerField';
 import { AppAlertStatic } from '../ui/AppAlert';
+import { AttachmentField } from '../ui/AttachmentField';
+import type { FileAttachment } from '../ui/SelectedFilesList';
 
 const EXPENSE_CATEGORIES: DropdownOption<string>[] = [
   { label: 'Office Rent', value: 'OfficeRent' },
@@ -38,6 +42,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ visible, onClose, on
   const [jeMode, setJeMode] = useState<number>(0); 
   const [jeUpiRef, setJeUpiRef] = useState('');
   const [jeDesc, setJeDesc] = useState('');
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
 
   const handleAddJournalEntry = async () => {
     if (!jeAmount || !jeCategory || !jePaidTo || !jeUpiRef || !jeDesc) {
@@ -58,7 +63,13 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ visible, onClose, on
       const response = await FinanceService.createJournalEntry(payload);
       if (response.status >= 400) throw new Error('Failed to post entry');
       
-      setJeAmount(''); setJeCategory(''); setJePaidTo(''); setJeUpiRef(''); setJeDesc('');
+      const responseData = response.data?.data || response.data;
+      const entityId = responseData?.entityId;
+      if (typeof entityId === 'string' || typeof entityId === 'object') { // string or guid representation
+        await documentService.uploadMultipleDocuments(attachments, 7, entityId.toString(), 6);
+      }
+      
+      setJeAmount(''); setJeCategory(''); setJePaidTo(''); setJeUpiRef(''); setJeDesc(''); setAttachments([]);
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -70,6 +81,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ visible, onClose, on
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
         <ScrollView contentContainerStyle={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -95,11 +107,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ visible, onClose, on
           <Text style={styles.inputLabel}>Narration Statement</Text>
           <TextInput style={styles.input} value={jeDesc} onChangeText={setJeDesc} placeholder="Description..." multiline numberOfLines={2} />
 
+          <AttachmentField label="Receipts / Proof" files={attachments} onChange={setAttachments} />
+
           <TouchableOpacity style={styles.submitBtn} onPress={handleAddJournalEntry} disabled={submitting}>
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Commit Voucher</Text>}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+    </SafeAreaView>
     </Modal>
   );
 };

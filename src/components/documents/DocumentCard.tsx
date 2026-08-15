@@ -33,12 +33,12 @@ export function DocumentCard({ item, categories, onAction, isRefreshing }: Docum
             onPanResponderMove: (evt, gestureState) => {
                 if (gestureState.dx < 0) { 
                     pan.setValue({ x: Math.max(gestureState.dx, -ACTION_WIDTH * 1.5), y: 0 });
-                } else if (gestureState.dx > 0 && pan.x._value < 0) {
+                } else if (gestureState.dx > 0 && (pan.x as any)._value < 0) {
                     pan.setValue({ x: Math.min(0, -ACTION_WIDTH + gestureState.dx), y: 0 });
                 }
             },
             onPanResponderRelease: (evt, gestureState) => {
-                if (gestureState.dx < -ACTION_WIDTH / 2 || pan.x._value < -ACTION_WIDTH / 1.5) {
+                if (gestureState.dx < -ACTION_WIDTH / 2 || (pan.x as any)._value < -ACTION_WIDTH / 1.5) {
                     Animated.spring(pan, {
                         toValue: { x: -ACTION_WIDTH, y: 0 },
                         useNativeDriver: true,
@@ -148,10 +148,10 @@ const styles = StyleSheet.create({
         borderColor: Theme.colors.borderDark, 
     },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    cardTitle: { fontSize: 15, fontWeight: '600', color: Theme.colors.text, flex: 1, marginRight: 12 },
+    cardTitle: { fontSize: 15, fontWeight: '600', color: Theme.colors.textPrimary, flex: 1, marginRight: 12 },
     badge: { backgroundColor: Theme.colors.background, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
     badgeText: { fontSize: 11, fontWeight: '500', color: Theme.colors.textSecondary },
     cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: Theme.colors.border, paddingTop: 12 },
     dateText: { fontSize: 12, color: Theme.colors.textSecondary },
-    sizeText: { fontSize: 12, color: Theme.colors.textMuted },
+    sizeText: { fontSize: 12, color: Theme.colors.textSecondary },
 });

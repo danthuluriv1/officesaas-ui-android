@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet } from 'react-native';
 
@@ -21,6 +22,7 @@ export const SelectorModal: React.FC<SelectorModalProps> = ({
   valKey = 'entityId' 
 }) => (
   <Modal visible={visible} animationType="fade" transparent>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
     <View style={styles.selectorOverlay}>
       <View style={styles.selectorContent}>
         <View style={styles.selectorHeader}>
@@ -41,7 +43,8 @@ export const SelectorModal: React.FC<SelectorModalProps> = ({
         </ScrollView>
       </View>
     </View>
-  </Modal>
+  </SafeAreaView>
+    </Modal>
 );
 
 const styles = StyleSheet.create({

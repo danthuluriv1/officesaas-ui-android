@@ -7,6 +7,8 @@ import { LineChart } from 'react-native-chart-kit';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getItem } from '../../utils/storage';
+import { decodeJwt } from '../../utils/jwt';
 
 interface ShortcutConfig {
   id: string;
@@ -53,6 +55,9 @@ export default function DashboardScreen() {
   const [shortcuts, setShortcuts] = useState<ShortcutConfig[]>(DEFAULT_SHORTCUTS);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const [editingShortcuts, setEditingShortcuts] = useState<ShortcutConfig[]>([]);
+
+  const [userRole, setUserRole] = useState<string>('');
+  const [modulePermissions, setModulePermissions] = useState<Record<string, string[]> | null>(null);
 
   // Dynamic Chart Width
   const [chartWidth, setChartWidth] = useState(0);
@@ -136,14 +141,34 @@ export default function DashboardScreen() {
     useCallback(() => {
       fetchUnreadCount();
       fetchStats();
+      loadUserAndPermissions();
     }, [startDate, endDate])
   );
+
+  const loadUserAndPermissions = async () => {
+    try {
+      const token = await getItem('saas_token');
+      if (token) {
+        const claims = decodeJwt(token);
+        if (claims) {
+          setUserRole(claims.role);
+        }
+      }
+      const res = await axiosClient.get('/Settings/profile');
+      if (res.data?.isSuccess && res.data?.data?.modulePermissions) {
+        setModulePermissions(res.data.data.modulePermissions);
+      }
+    } catch (e) {
+      console.warn('Failed to load permissions', e);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
       fetchUnreadCount(),
-      fetchStats()
+      fetchStats(),
+      loadUserAndPermissions()
     ]);
     setRefreshing(false);
   };
@@ -327,7 +352,16 @@ export default function DashboardScreen() {
             </View>
             
             <View style={styles.actionsRow}>
-              {shortcuts.map(item => (
+              {shortcuts.filter(item => {
+                if (userRole === 'SuperAdmin' || userRole === 'OfficeAdmin') return true;
+                if (!modulePermissions) return true; // Show all if permissions not loaded yet
+                const roleModules = modulePermissions[userRole] || [];
+                // Map shortcut IDs back to their actual module IDs for permission checking
+                let moduleId = item.id;
+                if (moduleId === 'directory') moduleId = 'employees';
+                if (moduleId === 'addExpense' || moduleId === 'postPayment') moduleId = 'finance';
+                return roleModules.includes(moduleId);
+              }).map(item => (
                 <TouchableOpacity 
                   key={item.id}
                   style={styles.actionCard} 

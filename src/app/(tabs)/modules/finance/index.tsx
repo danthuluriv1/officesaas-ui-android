@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { AppText as Text } from '../../../components/AppText';
+import { AppText as Text } from '../../../../components/AppText';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { FinanceService } from '../../../api/financeService';
-import { ExpenseModal } from '../../../components/finance/ExpenseModal';
-import { PaymentModal } from '../../../components/finance/PaymentModal';
-import type { LedgerEntry } from '../../../types';
-import { AppAlertStatic } from '../../../components/ui/AppAlert';
+import { FinanceService } from '../../../../api/financeService';
+import { ExpenseModal } from '../../../../components/finance/ExpenseModal';
+import { PaymentModal } from '../../../../components/finance/PaymentModal';
+import { TransactionDetailsModal } from '../../../../components/finance/TransactionDetailsModal';
+import type { LedgerEntry } from '../../../../types';
+import { AppAlertStatic } from '../../../../components/ui/AppAlert';
 
 export default function FinanceScreen() {
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
@@ -16,6 +17,7 @@ export default function FinanceScreen() {
   // Form State
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<LedgerEntry | null>(null);
 
   const fetchLedger = async () => {
     try {
@@ -54,7 +56,23 @@ export default function FinanceScreen() {
 
   const renderHeader = () => (
     <View style={styles.actionsContainer}>
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      {/* <Text style={styles.sectionTitle}>Overview</Text> */}
+      <View style={styles.actionsRow}>
+        {/* <TouchableOpacity style={styles.navCard} onPress={() => router.push('/(tabs)/modules/finance/expenses')}>
+          <View style={[styles.actionIcon, { backgroundColor: '#FEE2E2' }]}>
+            <Text style={styles.iconText}>📉</Text>
+          </View>
+          <Text style={styles.actionText}>All Expenses</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navCard} onPress={() => router.push('/(tabs)/modules/finance/inflows')}>
+          <View style={[styles.actionIcon, { backgroundColor: '#D1FAE5' }]}>
+            <Text style={styles.iconText}>📈</Text>
+          </View>
+          <Text style={styles.actionText}>All Inflows</Text>
+        </TouchableOpacity> */}
+      </View>
+
+      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick Actions</Text>
       <View style={styles.actionsRow}>
         <TouchableOpacity style={styles.actionCard} onPress={() => setExpenseModalVisible(true)}>
           <View style={[styles.actionIcon, { backgroundColor: '#FEE2E2' }]}>
@@ -74,7 +92,7 @@ export default function FinanceScreen() {
   );
 
   const renderItem = ({ item }: { item: LedgerEntry }) => (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => setSelectedTransaction(item)} activeOpacity={0.7}>
       <View style={styles.cardHeader}>
         <Text style={styles.description}>{item.description || 'Entry'}</Text>
         <Text style={styles.date}>{item.postingDate ? new Date(item.postingDate).toLocaleDateString() : ''}</Text>
@@ -90,7 +108,7 @@ export default function FinanceScreen() {
           <Text style={styles.balance}>₹{(item.amount || 0).toLocaleString()}</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading && !refreshing) {
@@ -129,6 +147,14 @@ export default function FinanceScreen() {
           onSuccess={fetchLedger} 
         />
       )}
+
+      {selectedTransaction && (
+        <TransactionDetailsModal
+          visible={!!selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+          transaction={selectedTransaction}
+        />
+      )}
     </View>
   );
 }
@@ -158,6 +184,20 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     gap: 12,
+  },
+  navCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   actionCard: {
     flex: 1,

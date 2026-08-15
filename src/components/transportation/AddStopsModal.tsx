@@ -85,6 +85,7 @@ export function AddStopsModal({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.header}>
@@ -187,6 +188,7 @@ export function AddStopsModal({
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
+    </SafeAreaView>
     </Modal>
   );
 }

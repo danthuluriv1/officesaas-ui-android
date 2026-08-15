@@ -38,7 +38,7 @@ export function GeneralTab({ profile, isEditing, updateField, updateAddress, onO
             value={profile.phone}
             onChangeText={(text) => updateField('phone', text)}
             placeholder="e.g. +91 9876543210"
-            disabled={!isEditing}
+            editable={isEditing}
           />
         </View>
         <FormInput editable={isEditing}

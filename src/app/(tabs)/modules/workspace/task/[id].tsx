@@ -61,10 +61,11 @@ export default function TaskDetailScreen() {
     setLoading(true);
     const ts = Date.now();
     try {
-      const [taskRes, msgRes, empRes] = await Promise.all([
+      const [taskRes, msgRes, empRes, userRes] = await Promise.all([
         axiosClient.get(`/Tasks/${taskId}?t=${ts}`),
         axiosClient.get(`/Tasks/${taskId}/messages?t=${ts}`).catch(() => null),
-        axiosClient.get('/Employees?PageSize=100').catch(() => null)
+        axiosClient.get('/Employees?PageSize=100').catch(() => null),
+        axiosClient.get('/Users?PageSize=100').catch(() => null)
       ]);
       
       if (taskRes.data?.isSuccess) {
@@ -75,9 +76,37 @@ export default function TaskDetailScreen() {
         setMessages(msgRes.data.data || []);
       }
       
+      const assigneeMap = new Map<string, any>();
+      const employeeLinkedUserIds = new Set<string>();
       if (empRes?.data?.isSuccess) {
-        setEmployees(empRes.data.data.items || empRes.data.data);
+        const empList = empRes.data.data.items || empRes.data.data;
+        empList.forEach((e: any) => {
+          const eId = e.entityId || e.id;
+          if (eId) {
+            assigneeMap.set(eId, {
+              entityId: eId,
+              fullName: e.fullName || `${e.firstName || ''} ${e.lastName || ''}`.trim() || 'Unnamed Staff'
+            });
+            if (e.associatedUserEntityId) {
+              employeeLinkedUserIds.add(e.associatedUserEntityId);
+            }
+          }
+        });
       }
+
+      if (userRes?.data?.isSuccess) {
+        const userList = userRes.data.data.items || userRes.data.data;
+        userList.forEach((u: any) => {
+          const uId = u.entityId || u.id;
+          if (uId && !assigneeMap.has(uId) && !employeeLinkedUserIds.has(uId)) {
+            assigneeMap.set(uId, {
+              entityId: uId,
+              fullName: u.fullName || 'Unnamed User'
+            });
+          }
+        });
+      }
+      setEmployees(Array.from(assigneeMap.values()));
     } catch (error) {
       console.warn("Error fetching task details", error);
     } finally {

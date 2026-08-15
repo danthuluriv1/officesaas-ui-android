@@ -1,4 +1,3 @@
-// Original documentService.ts content
 import axiosClient from './axiosClient';
 
 export interface DocumentMetadata {
@@ -62,13 +61,20 @@ export const documentService = {
         relatedEntityType?: number,
         customFileName?: string
     ): Promise<DocumentMetadata> => {
+        const token = await require('../utils/storage').getItem("saas_token");
+
+        const params: Record<string, string> = {};
+        if (category !== undefined) params['category'] = category.toString();
+        if (relatedEntityId) params['relatedEntityId'] = relatedEntityId;
+        if (relatedEntityType !== undefined) params['relatedEntityType'] = relatedEntityType.toString();
+        if (customFileName) params['customFileName'] = customFileName;
+
         const formData = new FormData();
 
-        // React Native FormData requires file to have uri, type, and name
         formData.append('file', {
             uri: file.uri,
             type: file.type || 'application/octet-stream',
-            name: file.name,
+            name: file.name || 'upload.bin',
         } as any);
 
         if (category !== undefined) formData.append('category', category.toString());
@@ -77,12 +83,40 @@ export const documentService = {
         if (customFileName) formData.append('customFileName', customFileName);
 
         const response = await axiosClient.post('/Documents', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            // Delete Content-Type to allow React Native's XMLHttpRequest to auto-generate the multipart boundary
+            transformRequest: [(data, headers) => {
+                if (headers) {
+                    delete headers['Content-Type'];
+                    delete headers['content-type'];
+                }
+                return data;
+            }]
         });
 
         return response.data;
+    },
+
+    uploadMultipleDocuments: async (
+        files: { uri: string; type: string; name: string; mimeType?: string }[],
+        category?: number,
+        relatedEntityId?: string,
+        relatedEntityType?: number
+    ): Promise<void> => {
+        if (!relatedEntityId || !files || files.length === 0) return;
+        
+        for (const file of files) {
+            try {
+                const actualType = file.mimeType || (file.type && file.type.includes('/') ? file.type : 'application/octet-stream');
+                await documentService.uploadDocument(
+                    { uri: file.uri, type: actualType, name: file.name },
+                    category,
+                    relatedEntityId,
+                    relatedEntityType
+                );
+            } catch (uploadErr) {
+                console.warn(`Failed to upload attachment ${file.name}`, uploadErr);
+            }
+        }
     },
 
     deleteDocument: async (id: string): Promise<void> => {

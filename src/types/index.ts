@@ -131,6 +131,10 @@ export interface LedgerEntry {
   description: string;
   type: 'Credit' | 'Debit' | string;
   amount: number;
+  sourceModule?: string;
+  sourceEntityId?: string;
+  accountCategory?: string;
+  transactionNumber?: string;
 }
 
 export interface Vehicle {

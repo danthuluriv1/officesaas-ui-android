@@ -1,12 +1,16 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { Theme } from '../../theme';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { FinanceService } from '../../api/financeService';
 import { OrderService } from '../../api/orderService';
+import { documentService } from '../../api/documentService';
 import { DropdownPicker, DropdownOption } from '../ui/DropdownPicker';
 import { DatePickerField } from '../ui/DatePickerField';
 import type { Order, Party } from '../../types';
 import { AppAlertStatic } from '../ui/AppAlert';
+import { AttachmentField } from '../ui/AttachmentField';
+import type { FileAttachment } from '../ui/SelectedFilesList';
 
 const PAYMENT_MODES: DropdownOption<number>[] = [
   { label: 'UPI Transfer', value: 0 },
@@ -37,6 +41,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
   const [payMode, setPayMode] = useState<number>(2); 
   const [payRef, setPayRef] = useState('');
   const [payRemarks, setPayRemarks] = useState('');
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
 
   useEffect(() => {
     if (visible) {
@@ -78,7 +83,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
       const response = await FinanceService.createPayment(payload);
       if (response.status >= 400) throw new Error('Failed to post payment');
       
-      setPayAmount(''); setPayRef(''); setPayRemarks(''); setPayOrderId(''); setPayClientId('');
+      const responseData = response.data?.data || response.data;
+      const entityId = responseData?.entityId;
+      if (typeof entityId === 'string' || typeof entityId === 'object') {
+        await documentService.uploadMultipleDocuments(attachments, 7, entityId.toString(), 5);
+      }
+      
+      setPayAmount(''); setPayRef(''); setPayRemarks(''); setPayOrderId(''); setPayClientId(''); setAttachments([]);
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -104,6 +115,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
         <ScrollView contentContainerStyle={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -138,11 +150,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
           <Text style={styles.inputLabel}>Remarks (Optional)</Text>
           <TextInput style={styles.input} value={payRemarks} onChangeText={setPayRemarks} placeholder="Notes..." multiline numberOfLines={2} />
 
+          <AttachmentField label="Payment Proof / Documents" files={attachments} onChange={setAttachments} />
+
           <TouchableOpacity style={styles.submitBtn} onPress={handleAddPayment} disabled={submitting}>
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Post Payment</Text>}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+    </SafeAreaView>
     </Modal>
   );
 };

@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { Theme } from '../../theme';
 import { View, Text, StyleSheet, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Switch, TouchableOpacity } from 'react-native';
@@ -181,6 +182,7 @@ export function EmployeeFormModal({ visible, onClose, onSubmit, initialData, sub
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
         <ScrollView contentContainerStyle={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -361,6 +363,7 @@ export function EmployeeFormModal({ visible, onClose, onSubmit, initialData, sub
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+    </SafeAreaView>
     </Modal>
   );
 }

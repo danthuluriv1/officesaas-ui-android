@@ -1,8 +1,10 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { Theme } from '../../theme';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { OrderService } from '../../api/orderService';
 import { SelectorModal } from '../ui/SelectorModal';
+import { DatePickerField } from '../ui/DatePickerField';
 import type { Party, Product, Quotation, LineItem } from '../../types';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { AppAlertStatic } from '../ui/AppAlert';
@@ -191,6 +193,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
   return (
     <View>
       <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
           <ScrollView contentContainerStyle={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -297,17 +300,23 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
 
             <View style={[styles.row, { marginTop: 16 }]}>
               <View style={styles.col}>
-                <Text style={styles.inputLabel}>Start Date *</Text>
-                <TextInput style={styles.input} value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" />
+                <DatePickerField
+                  label="START DATE *"
+                  date={new Date(startDate)}
+                  onChange={(d) => setStartDate(d.toISOString().substring(0, 10))}
+                />
               </View>
               <View style={styles.col}>
-                <Text style={styles.inputLabel}>End Date *</Text>
-                <TextInput style={styles.input} value={endDate} onChangeText={setEndDate} placeholder="YYYY-MM-DD" />
+                <DatePickerField
+                  label="END DATE *"
+                  date={new Date(endDate)}
+                  onChange={(d) => setEndDate(d.toISOString().substring(0, 10))}
+                />
               </View>
             </View>
 
             <View style={styles.bomHeaderContainer}>
-              <Text style={[styles.sectionTitleModal, { marginBottom: 0 }]}>Line Items</Text>
+              <Text style={[styles.sectionTitleModal, { marginBottom: 0, borderBottomWidth: 0, paddingBottom: 0 }]}>Line Items</Text>
               <TouchableOpacity onPress={addItemRow}>
                 <Text style={styles.addBomText}>+ Add Item</Text>
               </TouchableOpacity>
@@ -368,7 +377,8 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
-      </Modal>
+      </SafeAreaView>
+    </Modal>
 
       <SelectorModal 
         visible={partySelectorOpen} 
@@ -416,7 +426,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 20,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -547,7 +557,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 8,
     marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',

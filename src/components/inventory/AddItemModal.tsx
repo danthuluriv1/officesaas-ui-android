@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { Theme } from '../../theme';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
@@ -54,6 +55,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
         <ScrollView contentContainerStyle={styles.modalContent}>
           <View style={styles.modalHeader}>
@@ -78,6 +80,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+    </SafeAreaView>
     </Modal>
   );
 };

@@ -1,3 +1,4 @@
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform } from 'react-native';
 
@@ -13,6 +14,7 @@ export const VehicleInfoModal: React.FC<VehicleInfoModalProps> = ({ visible, veh
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Vehicle Profile</Text>
@@ -65,6 +67,7 @@ export const VehicleInfoModal: React.FC<VehicleInfoModalProps> = ({ visible, veh
           </TouchableOpacity>
         </ScrollView>
       </View>
+    </SafeAreaView>
     </Modal>
   );
 };

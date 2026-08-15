@@ -60,7 +60,12 @@ async function registerForPushNotifications() {
   }
 
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+    if (!projectId) {
+      console.warn('[PushNotifications] Missing EAS Project ID in app.json. Push token might fail.');
+    }
+    
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
     await axiosClient.put('/Users/push-token', { token: tokenData.data });
     console.log('[PushNotifications] Token registered:', tokenData.data);
   } catch (e) {

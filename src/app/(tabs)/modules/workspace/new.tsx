@@ -26,12 +26,46 @@ export default function NewTaskScreen() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await axiosClient.get('/Employees?PageSize=100');
-      if (res.data?.isSuccess) {
-        setEmployees(res.data.data.items || res.data.data);
+      const [empRes, userRes] = await Promise.all([
+        axiosClient.get('/Employees?PageSize=100').catch(() => null),
+        axiosClient.get('/Users?PageSize=100').catch(() => null)
+      ]);
+
+      const assigneeMap = new Map<string, any>();
+      const employeeLinkedUserIds = new Set<string>();
+
+      if (empRes?.data?.isSuccess) {
+        const empList = empRes.data.data.items || empRes.data.data;
+        empList.forEach((e: any) => {
+          const eId = e.entityId || e.id;
+          if (eId) {
+            assigneeMap.set(eId, {
+              entityId: eId,
+              fullName: e.fullName || `${e.firstName || ''} ${e.lastName || ''}`.trim() || 'Unnamed Staff'
+            });
+            if (e.associatedUserEntityId) {
+              employeeLinkedUserIds.add(e.associatedUserEntityId);
+            }
+          }
+        });
       }
+
+      if (userRes?.data?.isSuccess) {
+        const userList = userRes.data.data.items || userRes.data.data;
+        userList.forEach((u: any) => {
+          const uId = u.entityId || u.id;
+          if (uId && !assigneeMap.has(uId) && !employeeLinkedUserIds.has(uId)) {
+            assigneeMap.set(uId, {
+              entityId: uId,
+              fullName: u.fullName || 'Unnamed User'
+            });
+          }
+        });
+      }
+
+      setEmployees(Array.from(assigneeMap.values()));
     } catch (e) {
-      console.warn("Failed to fetch employees", e);
+      console.warn("Failed to fetch assignees", e);
     }
   };
 

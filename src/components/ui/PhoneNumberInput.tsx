@@ -34,7 +34,7 @@ export function PhoneNumberInput({ value, onChangeText, style, ...props }: Phone
   const isEditable = props.editable !== false && !(props as any).disabled;
 
   return (
-    <View style={[styles.container, !isEditable && styles.containerDisabled, style]}>
+    <View style={[styles.container, !isEditable && styles.containerDisabled, style as any]}>
       <View style={[styles.prefixContainer, !isEditable && styles.prefixContainerDisabled]}>
         <Text style={[styles.prefixText, !isEditable && styles.textDisabled]}>+91</Text>
       </View>
