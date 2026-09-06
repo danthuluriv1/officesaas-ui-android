@@ -32,8 +32,8 @@ async function registerForPushNotifications() {
     }),
   });
 
-  if (!Device.isDevice) {
-    console.log('[PushNotifications] Skipping — physical device required.');
+  if (!Device.isDevice && Platform.OS === 'ios') {
+    console.log('[PushNotifications] Skipping — physical device required for iOS.');
     return;
   }
 

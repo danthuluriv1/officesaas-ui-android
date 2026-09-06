@@ -5,6 +5,7 @@ import { AppText as Text } from '../../../../components/AppText';
 import { useLocalSearchParams } from 'expo-router';
 import axiosClient from '../../../../api/axiosClient';
 import { AppAlertStatic } from '../../../../components/ui/AppAlert';
+import { OrderFormModal } from '../../../../components/orders/OrderFormModal';
 
 interface LineItem {
   name?: string;
@@ -75,20 +76,6 @@ export default function OrderDetailScreen() {
   const [loading, setLoading] = useState(true);
   
   const [modalVisible, setModalVisible] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Form State
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [status, setStatus] = useState(0); // 0 = Pending, 1 = Completed, 2 = Cancelled
-  const [paymentStatus, setPaymentStatus] = useState(0); // 0 = Pending, 1 = Paid
-  const [terms, setTerms] = useState('');
-  const [items, setItems] = useState<LineItem[]>([]);
-
-  // Product Selection State
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
-  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
 
   const fetchOrder = async () => {
     try {
@@ -106,95 +93,15 @@ export default function OrderDetailScreen() {
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      const res = await axiosClient.get('/Products', { params: { pageSize: 100 } });
-      if (res.data?.isSuccess) {
-        const payload = res.data.data;
-        setProducts(Array.isArray(payload?.items) ? payload.items : (Array.isArray(payload) ? payload : []));
-      }
-    } catch (e) {
-      console.warn("Failed to fetch products", e);
-    }
-  };
-
   useEffect(() => {
     if (id) {
       fetchOrder();
     }
-    fetchProducts();
   }, [id]);
 
   const handleOpenEdit = () => {
     if (!order) return;
-    setStartDate(order.startDate ? new Date(order.startDate).toISOString().substring(0, 10) : '');
-    setEndDate(order.endDate ? new Date(order.endDate).toISOString().substring(0, 10) : '');
-    setStatus(order.status === 'Completed' ? 1 : order.status === 'Cancelled' ? 2 : 0);
-    setPaymentStatus(order.paymentStatus === 'Paid' ? 1 : 0);
-    setTerms(order.termsAndConditions || '');
-    setItems(order.items ? JSON.parse(JSON.stringify(order.items)) : []);
     setModalVisible(true);
-  };
-
-  const addItemRow = () => setItems([...items, { name: '', description: '', hsN_SAC_Code: '', quantity: 1, rate: 0, taxPercentage: 0, totalTaxableValue: 0, taxAmount: 0, totalAmount: 0 }]);
-  const updateItem = (index: number, field: keyof LineItem, val: string | number) => {
-    setItems(prevItems => {
-      const newItems = [...prevItems];
-      newItems[index] = { ...newItems[index], [field]: val };
-      return newItems;
-    });
-  };
-  const removeItemRow = (index: number) => setItems(prev => prev.filter((_, i) => i !== index));
-
-  const applyProductToRow = (product: Product, index: number) => {
-    setItems(prevItems => {
-      const newItems = [...prevItems];
-      newItems[index] = { 
-        ...newItems[index], 
-        name: product.name, 
-        description: product.description || product.name,
-        rate: product.sellingPrice
-      };
-      return newItems;
-    });
-  };
-
-  const handleEditOrder = async () => {
-    if (!order) return;
-    setSubmitting(true);
-    try {
-      const payload = {
-        orderType: order.orderType,
-        associatedPartyEntityId: order.associatedPartyEntityId,
-        partyNameSnapshot: order.partyNameSnapshot,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        status,
-        paymentStatus,
-        termsAndConditions: terms,
-        items: items.map(i => ({
-          name: i.name,
-          description: i.description,
-          hsN_SAC_Code: i.hsN_SAC_Code,
-          quantity: i.quantity,
-          rate: i.rate,
-          taxPercentage: i.taxPercentage
-        }))
-      };
-
-      const response = await axiosClient.put(`/Billing/orders/${id}`, payload);
-      if (response.data?.isSuccess) {
-        AppAlertStatic.alert('Success', 'Order updated successfully!');
-        setModalVisible(false);
-        fetchOrder();
-      } else {
-        AppAlertStatic.alert('Error', response.data?.message || 'Failed to update order');
-      }
-    } catch (err: any) {
-      AppAlertStatic.alert('Error', err.response?.data?.message || err.message || 'An error occurred');
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   if (loading) {
@@ -246,11 +153,11 @@ export default function OrderDetailScreen() {
         <Text style={styles.sectionTitle}>Order Information</Text>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Start Date</Text>
-          <Text style={styles.infoValue}>{order.startDate ? new Date(order.startDate).toLocaleDateString() : 'N/A'}</Text>
+          <Text style={styles.infoValue}>{order.startDate ? new Date(order.startDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>End Date</Text>
-          <Text style={styles.infoValue}>{order.endDate ? new Date(order.endDate).toLocaleDateString() : 'N/A'}</Text>
+          <Text style={styles.infoValue}>{order.endDate ? new Date(order.endDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Order Type</Text>
@@ -296,136 +203,11 @@ export default function OrderDetailScreen() {
       </View>
 
       {/* Edit Modal */}
-      <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
-          <ScrollView contentContainerStyle={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Order</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}><Text style={styles.closeText}>Cancel</Text></TouchableOpacity>
-            </View>
-
-            <Text style={styles.sectionTitleModal}>Dates</Text>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.inputLabel}>Start Date *</Text>
-                <TextInput style={styles.input} value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" />
-              </View>
-              <View style={styles.col}>
-                <Text style={styles.inputLabel}>End Date *</Text>
-                <TextInput style={styles.input} value={endDate} onChangeText={setEndDate} placeholder="YYYY-MM-DD" />
-              </View>
-            </View>
-
-            <Text style={styles.sectionTitleModal}>Status Configuration</Text>
-            <Text style={styles.inputLabel}>Order Status</Text>
-            <View style={styles.roleContainer}>
-              {[
-                { label: 'Pending', value: 0 },
-                { label: 'Completed', value: 1 },
-                { label: 'Cancelled', value: 2 }
-              ].map(s => (
-                <TouchableOpacity 
-                  key={s.value} 
-                  style={[styles.roleBtn, status === s.value && styles.roleBtnActive]}
-                  onPress={() => setStatus(s.value)}
-                >
-                  <Text style={[styles.roleBtnText, status === s.value && styles.roleBtnTextActive]}>{s.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.inputLabel}>Payment Status</Text>
-            <View style={styles.roleContainer}>
-              {[
-                { label: 'Pending', value: 0 },
-                { label: 'Paid', value: 1 }
-              ].map(s => (
-                <TouchableOpacity 
-                  key={s.value} 
-                  style={[styles.roleBtn, paymentStatus === s.value && styles.roleBtnActive]}
-                  onPress={() => setPaymentStatus(s.value)}
-                >
-                  <Text style={[styles.roleBtnText, paymentStatus === s.value && styles.roleBtnTextActive]}>{s.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.bomHeaderContainer}>
-              <Text style={[styles.sectionTitleModal, { marginBottom: 0 }]}>Line Items</Text>
-              <TouchableOpacity onPress={addItemRow}>
-                <Text style={styles.addBomText}>+ Add Item</Text>
-              </TouchableOpacity>
-            </View>
-
-            {items.map((row, idx) => (
-              <View key={idx} style={styles.bomRow}>
-                <View style={[styles.row, { marginBottom: 8 }]}>
-                  <View style={[styles.col, { flex: 1.5 }]}>
-                    <Text style={styles.inputLabel}>Name *</Text>
-                    <TextInput style={styles.input} value={row.name} onChangeText={(v) => updateItem(idx, 'name', v)} placeholder="Item Name..." />
-                  </View>
-                  <View style={[styles.col, { flex: 2 }]}>
-                    <Text style={styles.inputLabel}>Description *</Text>
-                    <TextInput style={styles.input} value={row.description} onChangeText={(v) => updateItem(idx, 'description', v)} placeholder="Item desc..." />
-                  </View>
-                  <View style={{ justifyContent: 'flex-end', paddingBottom: 4 }}>
-                    <TouchableOpacity 
-                      style={styles.pickProductBtn}
-                      onPress={() => {
-                        setActiveItemIndex(idx);
-                        setProductSelectorOpen(true);
-                      }}
-                    >
-                      <Text style={styles.pickProductText}>Pick</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={styles.col}>
-                    <Text style={styles.inputLabel}>Rate (₹) *</Text>
-                    <TextInput style={styles.input} value={row.rate || row.rate === 0 ? row.rate.toString() : ''} onChangeText={(v) => updateItem(idx, 'rate', parseFloat(v) || 0)} keyboardType="numeric" placeholder="0" />
-                  </View>
-                  <View style={styles.col}>
-                    <Text style={styles.inputLabel}>Qty *</Text>
-                    <TextInput style={styles.input} value={row.quantity ? row.quantity.toString() : ''} onChangeText={(v) => updateItem(idx, 'quantity', parseFloat(v) || 0)} keyboardType="numeric" placeholder="1" />
-                  </View>
-                  <View style={styles.col}>
-                    <Text style={styles.inputLabel}>Tax (%)</Text>
-                    <TextInput style={styles.input} value={row.taxPercentage || row.taxPercentage === 0 ? row.taxPercentage.toString() : ''} onChangeText={(v) => updateItem(idx, 'taxPercentage', parseFloat(v) || 0)} keyboardType="numeric" placeholder="0" />
-                  </View>
-                </View>
-                <View style={{ alignItems: 'flex-end', marginTop: 8 }}>
-                   <TouchableOpacity style={styles.deleteBomBtn} onPress={() => removeItemRow(idx)}>
-                      <Text style={styles.deleteBomText}>Remove Item</Text>
-                   </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-
-            <Text style={[styles.sectionTitleModal, { marginTop: 24 }]}>Additional Details</Text>
-            <Text style={styles.inputLabel}>Terms & Conditions</Text>
-            <TextInput style={styles.input} value={terms} onChangeText={setTerms} placeholder="Enter terms..." multiline numberOfLines={3} />
-
-            <TouchableOpacity style={styles.submitBtn} onPress={handleEditOrder} disabled={submitting}>
-              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Save Changes</Text>}
-            </TouchableOpacity>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      <SelectorModal 
-        visible={productSelectorOpen} 
-        title="Select Product"
-        items={products} 
-        displayKey="name"
-        onSelect={(item: Product) => {
-          if (activeItemIndex !== null) {
-            applyProductToRow(item, activeItemIndex);
-          }
-          setProductSelectorOpen(false);
-        }} 
-        onClose={() => setProductSelectorOpen(false)} 
+      <OrderFormModal 
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)} 
+        onSuccess={() => { setModalVisible(false); fetchOrder(); }} 
+        initialData={order} 
       />
     </ScrollView>
   );

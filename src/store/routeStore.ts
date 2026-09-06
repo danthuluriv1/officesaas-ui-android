@@ -13,7 +13,7 @@ interface RouteStoreState {
 }
 
 export const useRouteStore = create<RouteStoreState>((set) => ({
-  filterDate: new Date().toISOString().split('T')[0],
+  filterDate: new Date().toISOString(),
   filterStatus: 'All',
   selectedRoute: null,
   routes: [],

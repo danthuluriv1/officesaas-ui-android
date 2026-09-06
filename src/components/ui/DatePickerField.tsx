@@ -3,12 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export interface DatePickerFieldProps {
-  label: string;
-  date: Date;
+  label?: string;
+  date?: Date | null;
+  placeholder?: string;
   onChange: (date: Date) => void;
 }
 
-export function DatePickerField({ label, date, onChange }: DatePickerFieldProps) {
+export function DatePickerField({ label, date, placeholder, onChange }: DatePickerFieldProps) {
   const [show, setShow] = useState(false);
 
   const handleValueChange = (event: any, selectedDate?: Date) => {
@@ -28,13 +29,13 @@ export function DatePickerField({ label, date, onChange }: DatePickerFieldProps)
 
   return (
     <View style={styles.dropdownContainer}>
-      <Text style={styles.inputLabel}>{label}</Text>
+      {label && <Text style={styles.inputLabel}>{label}</Text>}
       <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setShow(true)}>
-        <Text style={styles.dropdownText}>{date.toLocaleDateString()}</Text>
+        <Text style={styles.dropdownText}>{date ? date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : placeholder || 'Select Date'}</Text>
       </TouchableOpacity>
       {show && (
         <DateTimePicker
-          value={date}
+          value={date || new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onValueChange={handleValueChange}

@@ -95,7 +95,7 @@ export default function FinanceScreen() {
     <TouchableOpacity style={styles.card} onPress={() => setSelectedTransaction(item)} activeOpacity={0.7}>
       <View style={styles.cardHeader}>
         <Text style={styles.description}>{item.description || 'Entry'}</Text>
-        <Text style={styles.date}>{item.postingDate ? new Date(item.postingDate).toLocaleDateString() : ''}</Text>
+        <Text style={styles.date}>{item.postingDate ? new Date(item.postingDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : ''}</Text>
       </View>
       
       <View style={styles.detailsRow}>

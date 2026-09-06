@@ -33,7 +33,7 @@ export function EmployeeFormModal({ visible, onClose, onSubmit, initialData, sub
   const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
   const [emergencyContactRelation, setEmergencyContactRelation] = useState('');
   const [monthlyGrossSalary, setMonthlyGrossSalary] = useState('');
-  const [joiningDate, setJoiningDate] = useState(new Date().toISOString().substring(0, 10));
+  const [joiningDate, setJoiningDate] = useState(new Date().toISOString());
   const [showJoiningDatePicker, setShowJoiningDatePicker] = useState(false);
   const [aadhaarNumber, setAadhaarNumber] = useState('');
   const [panCardNumber, setPanCardNumber] = useState('');
@@ -84,7 +84,7 @@ export function EmployeeFormModal({ visible, onClose, onSubmit, initialData, sub
         setEmergencyContactPhone(initialData.emergencyContact?.phone || '');
         setEmergencyContactRelation(initialData.emergencyContact?.relation || '');
         setMonthlyGrossSalary(initialData.monthlyGrossSalary ? initialData.monthlyGrossSalary.toString() : '');
-        setJoiningDate(initialData.joiningDate ? new Date(initialData.joiningDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10));
+        setJoiningDate(initialData.joiningDate ? new Date(initialData.joiningDate).toISOString() : new Date().toISOString());
         setAadhaarNumber(initialData.aadhaarNumber || '');
         setPanCardNumber(initialData.panCardNumber || '');
         setCanLogin(initialData.canLogin || initialData.hasLoginAccess || false);
@@ -110,7 +110,7 @@ export function EmployeeFormModal({ visible, onClose, onSubmit, initialData, sub
         // Reset form
         setFirstName(''); setLastName(''); setDepartment(''); setDesignation(''); setPersonalEmail(''); setPhone('');
         setEmergencyContactName(''); setEmergencyContactPhone(''); setEmergencyContactRelation('');
-        setMonthlyGrossSalary(''); setJoiningDate(new Date().toISOString().substring(0, 10));
+        setMonthlyGrossSalary(''); setJoiningDate(new Date().toISOString());
         setShowJoiningDatePicker(false);
         setAadhaarNumber(''); setPanCardNumber('');
         setCanLogin(false); setEmailPrefix(''); setRole(0);
@@ -123,7 +123,7 @@ export function EmployeeFormModal({ visible, onClose, onSubmit, initialData, sub
   const onJoiningDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') setShowJoiningDatePicker(false);
     if (selectedDate) {
-      setJoiningDate(selectedDate.toISOString().substring(0, 10));
+      setJoiningDate(selectedDate.toISOString());
     }
   };
 

@@ -119,20 +119,20 @@ export default function DashboardScreen() {
   const startOfQuarter = new Date(today.getFullYear(), quarter * 3, 1);
   const endOfQuarter = new Date(startOfQuarter.getFullYear(), startOfQuarter.getMonth() + 3, 0);
 
-  const [startDate, setStartDate] = useState(startOfQuarter.toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(endOfQuarter.toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(startOfQuarter.toISOString());
+  const [endDate, setEndDate] = useState(endOfQuarter.toISOString());
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
   const onChangeStart = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') setShowStartPicker(false);
-    if (selectedDate) setStartDate(selectedDate.toISOString().split('T')[0]);
+    if (selectedDate) setStartDate(selectedDate.toISOString());
   };
 
   const onChangeEnd = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') setShowEndPicker(false);
-    if (selectedDate) setEndDate(selectedDate.toISOString().split('T')[0]);
+    if (selectedDate) setEndDate(selectedDate.toISOString());
   };
 
   const router = useRouter();
@@ -189,13 +189,10 @@ export default function DashboardScreen() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const toISTStartUTC = (dateStr: string) => new Date(`${dateStr}T00:00:00+05:30`).toISOString();
-      const toISTEndUTC = (dateStr: string) => new Date(`${dateStr}T23:59:59.999+05:30`).toISOString();
-
       const response = await axiosClient.get<any>('/Financials/dashboard', {
         params: { 
-          startDate: toISTStartUTC(startDate), 
-          endDate: toISTEndUTC(endDate) 
+          startDate: startDate, 
+          endDate: new Date(new Date(endDate).setHours(23, 59, 59, 999)).toISOString() 
         }
       });
 
@@ -226,11 +223,11 @@ export default function DashboardScreen() {
           <View style={styles.dateFilterRow}>
             <TouchableOpacity style={styles.dateInputWrapper} onPress={() => setShowStartPicker(true)}>
               <Text style={styles.dateLabel}>From:</Text>
-              <Text style={styles.dateInputText}>{startDate}</Text>
+              <Text style={styles.dateInputText}>{new Date(startDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.dateInputWrapper} onPress={() => setShowEndPicker(true)}>
               <Text style={styles.dateLabel}>To:</Text>
-              <Text style={styles.dateInputText}>{endDate}</Text>
+              <Text style={styles.dateInputText}>{new Date(endDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}</Text>
             </TouchableOpacity>
           </View>
 

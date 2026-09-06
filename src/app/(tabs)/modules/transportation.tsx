@@ -37,7 +37,7 @@ export default function TransportationScreen() {
   const [saving, setSaving] = useState(false);
 
   // Selected Route Date
-  const [selectedRouteDate, setSelectedRouteDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedRouteDate, setSelectedRouteDate] = useState(new Date().toISOString());
 
   // Modals
   const [vehicleFormVisible, setVehicleFormVisible] = useState(false);

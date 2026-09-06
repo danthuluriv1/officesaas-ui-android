@@ -10,6 +10,7 @@ import { AppAlertStatic } from '../ui/AppAlert';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { getItem } from '../../utils/storage';
+import axiosClient from '../../api/axiosClient';
 
 interface TransactionDetailsModalProps {
     visible: boolean;
@@ -35,7 +36,7 @@ export function TransactionDetailsModal({ visible, onClose, transaction }: Trans
     const handleOpenDocument = async (entityId: string, fileName: string) => {
         try {
             const token = await getItem('saas_token');
-            const url = `https://local.office-saas.com/api/v1/Documents/${entityId}`;
+            const url = `${axiosClient.defaults.baseURL}/Documents/${entityId}`;
             const fileUri = FileSystem.cacheDirectory + fileName;
 
             const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
@@ -97,7 +98,7 @@ export function TransactionDetailsModal({ visible, onClose, transaction }: Trans
                                 <View style={styles.infoRow}>
                                     <Text style={styles.infoLabel}>Date</Text>
                                     <Text style={styles.infoValue}>
-                                        {transaction.postingDate ? new Date(transaction.postingDate).toLocaleDateString() : 'N/A'}
+                                        {transaction.postingDate ? new Date(transaction.postingDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'N/A'}
                                     </Text>
                                 </View>
                                 <View style={styles.divider} />

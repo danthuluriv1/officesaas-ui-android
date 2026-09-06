@@ -84,7 +84,7 @@ export default function InboxTypeListScreen() {
           >
             <View style={styles.messageHeader}>
               <Text style={[styles.senderName, item.status === 'New' && styles.unreadText]}>{item.senderName}</Text>
-              <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+              <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}</Text>
             </View>
             <Text style={[styles.subject, item.status === 'New' && styles.unreadText]}>{item.subject}</Text>
             {item.senderEmail ? <Text style={styles.email}>{item.senderEmail}</Text> : null}

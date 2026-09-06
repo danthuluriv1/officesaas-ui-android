@@ -22,9 +22,11 @@ interface OrderFormModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: any;
 }
 
-export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose, onSuccess }) => {
+export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose, onSuccess, initialData }) => {
+  const isEdit = !!initialData;
   const [submitting, setSubmitting] = useState(false);
   
   const [orderType, setOrderType] = useState('Client'); // 'Client' or 'Vendor'
@@ -37,8 +39,10 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
   const [selectedPartyId, setSelectedPartyId] = useState('');
   const [selectedQuotationId, setSelectedQuotationId] = useState('');
   
-  const [startDate, setStartDate] = useState(new Date().toISOString().substring(0, 10));
-  const [endDate, setEndDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10));
+  const [startDate, setStartDate] = useState(new Date().toISOString());
+  const [endDate, setEndDate] = useState(new Date().toISOString());
+  const [status, setStatus] = useState(0);
+  const [paymentStatus, setPaymentStatus] = useState(0);
   const [terms, setTerms] = useState('');
   const [items, setItems] = useState<LineItem[]>([{ name: '', description: '', quantity: 1, rate: 0, taxPercentage: 0 }]);
   
@@ -49,6 +53,42 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
 
   useEffect(() => {
     if (visible) {
+      if (initialData) {
+        setOrderType(initialData.orderType || 'Client');
+        if (initialData.associatedPartyEntityId) {
+          setSelectedPartyId(initialData.associatedPartyEntityId);
+          setIsWalkIn(false);
+        } else {
+          setIsWalkIn(true);
+          setWalkInName(initialData.partyNameSnapshot || '');
+        }
+        
+        setStartDate(initialData.startDate ? new Date(initialData.startDate).toISOString() : new Date().toISOString());
+        setEndDate(initialData.endDate ? new Date(initialData.endDate).toISOString() : new Date().toISOString());
+        
+        setStatus(initialData.status === 'Completed' ? 1 : initialData.status === 'Cancelled' ? 2 : 0);
+        setPaymentStatus(initialData.paymentStatus === 'Paid' ? 1 : 0);
+        setTerms(initialData.termsAndConditions || '');
+        
+        if (initialData.items && initialData.items.length > 0) {
+          setItems(JSON.parse(JSON.stringify(initialData.items)));
+        } else {
+          setItems([{ name: '', description: '', quantity: 1, rate: 0, taxPercentage: 0 }]);
+        }
+      } else {
+        setOrderType('Client');
+        setSelectedPartyId('');
+        setIsWalkIn(false);
+        setWalkInName('');
+        setSelectedQuotationId('');
+        setStartDate(new Date().toISOString());
+        setEndDate(new Date().toISOString());
+        setStatus(0);
+        setPaymentStatus(0);
+        setItems([{ name: '', description: '', quantity: 1, rate: 0, taxPercentage: 0 }]);
+        setTerms('');
+      }
+
       const initData = async () => {
         try {
           const prods = await OrderService.getProducts();
@@ -57,10 +97,10 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
       };
       initData();
     }
-  }, [visible]);
+  }, [visible, initialData]);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !isEdit) {
       const loadParties = async () => {
         try {
           const pts = await OrderService.getParties(orderType as 'Client'|'Vendor');
@@ -71,8 +111,16 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
       setSelectedPartyId('');
       setQuotations([]);
       setSelectedQuotationId('');
+    } else if (visible && isEdit) {
+      const loadParties = async () => {
+        try {
+          const pts = await OrderService.getParties(orderType as 'Client'|'Vendor');
+          setParties(pts);
+        } catch(e) {}
+      };
+      loadParties();
     }
-  }, [orderType, visible]);
+  }, [orderType, visible, isEdit]);
 
   useEffect(() => {
     if (selectedPartyId && orderType === 'Client') {
@@ -89,7 +137,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
     }
   }, [selectedPartyId, orderType]);
 
-  const handleAddOrder = async () => {
+  const handleSubmit = async () => {
     if (!isWalkIn && !selectedPartyId) {
       AppAlertStatic.alert('Validation Error', `Please select a ${orderType.toLowerCase()} or check "Is Walk-in".`);
       return;
@@ -115,36 +163,34 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
       const payload = {
         orderType,
         associatedPartyEntityId: isWalkIn ? null : selectedPartyId,
-        partyNameSnapshot: isWalkIn ? walkInName : (selectedParty?.companyName || 'Unknown Party'),
+        partyNameSnapshot: isWalkIn ? walkInName : (selectedParty?.companyName || initialData?.partyNameSnapshot || 'Unknown Party'),
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         items: items.map(i => ({
-          name: i.name,
-          description: i.description,
+          name: i.name || '',
+          description: i.description || '',
           hsN_SAC_Code: i.hsN_SAC_Code || '',
           quantity: i.quantity,
           rate: i.rate,
-          taxPercentage: i.taxPercentage
+          taxPercentage: i.taxPercentage || 0
         })),
-        status: 0,
-        paymentStatus: 0,
+        status,
+        paymentStatus,
         termsAndConditions: terms
       };
 
-      await OrderService.createOrder(payload);
-      AppAlertStatic.alert('Success', 'Order created successfully!');
+      if (isEdit) {
+        await OrderService.updateOrder(initialData.entityId, payload);
+        AppAlertStatic.alert('Success', 'Order updated successfully!');
+      } else {
+        await OrderService.createOrder(payload);
+        AppAlertStatic.alert('Success', 'Order created successfully!');
+      }
+      
       onClose();
-      // Reset form
-      setOrderType('Client');
-      setSelectedPartyId('');
-      setIsWalkIn(false);
-      setWalkInName('');
-      setSelectedQuotationId('');
-      setItems([{ name: '', description: '', quantity: 1, rate: 0, taxPercentage: 0 }]);
-      setTerms('');
       onSuccess();
     } catch (err: any) {
-      AppAlertStatic.alert('Error', err.response?.data?.message || err.message || 'Failed to create order');
+      AppAlertStatic.alert('Error', err.response?.data?.message || err.message || `Failed to ${isEdit ? 'update' : 'create'} order`);
     } finally {
       setSubmitting(false);
     }
@@ -193,11 +239,11 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
   return (
     <View>
       <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }} edges={['top', 'bottom']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContainer}>
           <ScrollView contentContainerStyle={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create Order</Text>
+              <Text style={styles.modalTitle}>{isEdit ? 'Edit Order' : 'Create Order'}</Text>
               <TouchableOpacity onPress={onClose}><Text style={styles.closeText}>Cancel</Text></TouchableOpacity>
             </View>
 
@@ -209,40 +255,42 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
                 <TouchableOpacity 
                   key={t} 
                   style={[styles.roleBtn, orderType === t && styles.roleBtnActive]}
-                  onPress={() => { setOrderType(t); setSelectedPartyId(''); }}
+                  onPress={() => { if(!isEdit) { setOrderType(t); setSelectedPartyId(''); } }}
+                  disabled={isEdit}
                 >
-                  <Text style={[styles.roleBtnText, orderType === t && styles.roleBtnTextActive]}>{t} Order</Text>
+                  <Text style={[styles.roleBtnText, orderType === t && styles.roleBtnTextActive, isEdit && { color: '#9CA3AF' }]}>{t} Order</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <View style={[styles.row, { alignItems: 'center', marginVertical: 12 }]}>
               <TouchableOpacity 
-                style={[styles.checkbox, isWalkIn && styles.checkboxActive]} 
-                onPress={() => setIsWalkIn(!isWalkIn)}
+                style={[styles.checkbox, isWalkIn && styles.checkboxActive, isEdit && { borderColor: '#E5E7EB', backgroundColor: isWalkIn ? '#9CA3AF' : '#F3F4F6' }]} 
+                onPress={() => { if(!isEdit) setIsWalkIn(!isWalkIn); }}
+                disabled={isEdit}
               >
                 {isWalkIn && <Text style={styles.checkboxCheck}>✓</Text>}
               </TouchableOpacity>
-              <Text style={styles.checkboxLabel}>Custom Walk-in / One-time Order</Text>
+              <Text style={[styles.checkboxLabel, isEdit && { color: '#9CA3AF' }]}>Custom Walk-in / One-time Order</Text>
             </View>
 
             {isWalkIn ? (
               <View>
                 <Text style={styles.inputLabel}>Custom Name *</Text>
-                <TextInput style={styles.input} value={walkInName} onChangeText={setWalkInName} placeholder="e.g. John Doe (Walk-in)" />
+                <TextInput style={[styles.input, isEdit && { backgroundColor: '#F9FAFB', color: '#6B7280' }]} value={walkInName} onChangeText={setWalkInName} placeholder="e.g. John Doe (Walk-in)" editable={!isEdit} />
               </View>
             ) : (
               <View>
                 <Text style={styles.inputLabel}>Select {orderType} *</Text>
-                <TouchableOpacity style={styles.dropdownBtn} onPress={() => setPartySelectorOpen(true)}>
-                  <Text style={styles.dropdownBtnText}>
-                    {parties.find(p => p.entityId === selectedPartyId)?.companyName || `Select ${orderType}...`}
+                <TouchableOpacity style={[styles.dropdownBtn, isEdit && { backgroundColor: '#F9FAFB' }]} onPress={() => { if(!isEdit) setPartySelectorOpen(true); }} disabled={isEdit}>
+                  <Text style={[styles.dropdownBtnText, isEdit && { color: '#6B7280' }]}>
+                    {isEdit ? (initialData?.partyNameSnapshot || `Select ${orderType}...`) : (parties.find(p => p.entityId === selectedPartyId)?.companyName || `Select ${orderType}...`)}
                   </Text>
                 </TouchableOpacity>
 
                 {/* GPS Coordinates and Mini-Map indicator */}
                 {(() => {
-                  const selParty = parties.find(p => p.entityId === selectedPartyId);
+                  const selParty = isEdit && initialData ? parties.find(p => p.entityId === initialData.associatedPartyEntityId) : parties.find(p => p.entityId === selectedPartyId);
                   if (!selParty) return null;
                   
                   const hasCoords = selParty.address?.latitude && selParty.address?.longitude;
@@ -287,7 +335,7 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
               </View>
             )}
 
-            {!isWalkIn && quotations.length > 0 && (
+            {!isWalkIn && !isEdit && quotations.length > 0 && (
               <View style={{ marginTop: 16 }}>
                 <Text style={styles.inputLabel}>Apply Approved Quotation (Optional)</Text>
                 <TouchableOpacity style={styles.dropdownBtn} onPress={() => setQuotationSelectorOpen(true)}>
@@ -303,17 +351,55 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
                 <DatePickerField
                   label="START DATE *"
                   date={new Date(startDate)}
-                  onChange={(d) => setStartDate(d.toISOString().substring(0, 10))}
+                  onChange={(d) => setStartDate(d.toISOString())}
                 />
               </View>
               <View style={styles.col}>
                 <DatePickerField
                   label="END DATE *"
                   date={new Date(endDate)}
-                  onChange={(d) => setEndDate(d.toISOString().substring(0, 10))}
+                  onChange={(d) => setEndDate(d.toISOString())}
                 />
               </View>
             </View>
+
+            {isEdit && (
+              <View style={{ marginTop: 16 }}>
+                <Text style={styles.sectionTitleModal}>Status Configuration</Text>
+                <Text style={styles.inputLabel}>Order Status</Text>
+                <View style={styles.roleContainer}>
+                  {[
+                    { label: 'Pending', value: 0 },
+                    { label: 'Completed', value: 1 },
+                    { label: 'Cancelled', value: 2 }
+                  ].map(s => (
+                    <TouchableOpacity 
+                      key={s.value} 
+                      style={[styles.roleBtn, status === s.value && styles.roleBtnActive]}
+                      onPress={() => setStatus(s.value)}
+                    >
+                      <Text style={[styles.roleBtnText, status === s.value && styles.roleBtnTextActive]}>{s.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.inputLabel}>Payment Status</Text>
+                <View style={styles.roleContainer}>
+                  {[
+                    { label: 'Pending', value: 0 },
+                    { label: 'Paid', value: 1 }
+                  ].map(s => (
+                    <TouchableOpacity 
+                      key={s.value} 
+                      style={[styles.roleBtn, paymentStatus === s.value && styles.roleBtnActive]}
+                      onPress={() => setPaymentStatus(s.value)}
+                    >
+                      <Text style={[styles.roleBtnText, paymentStatus === s.value && styles.roleBtnTextActive]}>{s.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
 
             <View style={styles.bomHeaderContainer}>
               <Text style={[styles.sectionTitleModal, { marginBottom: 0, borderBottomWidth: 0, paddingBottom: 0 }]}>Line Items</Text>
@@ -372,8 +458,8 @@ export const OrderFormModal: React.FC<OrderFormModalProps> = ({ visible, onClose
             <Text style={styles.inputLabel}>Terms & Conditions</Text>
             <TextInput style={styles.input} value={terms} onChangeText={setTerms} placeholder="Enter terms..." multiline numberOfLines={3} />
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleAddOrder} disabled={submitting}>
-              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Create Order</Text>}
+            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
+              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>{isEdit ? 'Save Changes' : 'Create Order'}</Text>}
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>

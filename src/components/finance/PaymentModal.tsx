@@ -65,8 +65,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
   }, [visible]);
 
   const handleAddPayment = async () => {
-    if (!payAmount || !payRef) {
-      AppAlertStatic.alert('Error', 'Please fill Amount and Transaction Ref');
+    if (!payAmount) {
+      AppAlertStatic.alert('Error', 'Please fill Amount');
       return;
     }
     setSubmitting(true);
@@ -144,7 +144,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
 
           <DropdownPicker label="Payment Mode" options={PAYMENT_MODES} selectedValue={payMode} onSelect={(val) => setPayMode(val as number)} />
 
-          <Text style={styles.inputLabel}>Transaction Ref</Text>
+          <Text style={styles.inputLabel}>Transaction Ref (Optional)</Text>
           <TextInput style={styles.input} value={payRef} onChangeText={setPayRef} placeholder="Txn ID or Cheque No..." />
 
           <Text style={styles.inputLabel}>Remarks (Optional)</Text>

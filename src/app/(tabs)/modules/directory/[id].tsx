@@ -119,7 +119,7 @@ export default function EmployeeDetailScreen() {
 
         <Section title="Compensation Details">
           <Field label="Gross Monthly Salary" value={`₹${employee.monthlyGrossSalary}`} />
-          <Field label="Joining Date" value={employee.joiningDate ? new Date(employee.joiningDate).toLocaleDateString() : ''} />
+          <Field label="Joining Date" value={employee.joiningDate ? new Date(employee.joiningDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : ''} />
         </Section>
 
         <Section title="Residential Address">

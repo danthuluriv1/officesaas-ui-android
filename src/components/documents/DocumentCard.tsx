@@ -79,7 +79,7 @@ export function DocumentCard({ item, categories, onAction, isRefreshing }: Docum
                     <View style={styles.cardFooter}>
                         <View>
                             <Text style={styles.dateText}>
-                                {new Date(item.createdAt).toLocaleDateString()}
+                                {new Date(item.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}
                             </Text>
                             <Text style={styles.sizeText}>
                                 {item.createdByName || 'System'} • {(item.originalSizeBytes / 1024).toFixed(1)} KB

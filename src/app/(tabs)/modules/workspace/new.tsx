@@ -148,7 +148,7 @@ export default function NewTaskScreen() {
         <Text style={styles.label}>Target Completion Date (Optional)</Text>
         <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
           <Text style={{ color: targetDate ? '#111827' : '#9CA3AF' }}>
-            {targetDate ? targetDate.toLocaleDateString() : 'Select Target Date...'}
+            {targetDate ? targetDate.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'Select Target Date...'}
           </Text>
         </TouchableOpacity>
         {showDatePicker && (

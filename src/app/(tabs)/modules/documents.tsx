@@ -10,6 +10,7 @@ import { AppAlertStatic } from '../../../components/ui/AppAlert';
 import { DropdownPicker } from '../../../components/ui/DropdownPicker';
 import { getItem } from '../../../utils/storage';
 import { Theme } from '../../../theme';
+import axiosClient from '../../../api/axiosClient';
 
 import { DocumentCard } from '../../../components/documents/DocumentCard';
 import { UploadDocumentModal } from '../../../components/documents/UploadDocumentModal';
@@ -38,7 +39,7 @@ export default function DocumentsScreen() {
     const handleDocumentAction = async (entityId: string, fileName: string, action: 'open' | 'download') => {
         try {
             const token = await getItem('saas_token');
-            const url = `https://local.office-saas.com/api/v1/Documents/${entityId}`;
+            const url = `${axiosClient.defaults.baseURL}/Documents/${entityId}`;
             const fileUri = FileSystem.cacheDirectory + fileName;
 
             const downloadResult = await FileSystem.downloadAsync(url, fileUri, {

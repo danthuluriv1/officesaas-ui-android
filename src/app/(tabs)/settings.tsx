@@ -3,14 +3,52 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } fro
 import { AppText } from '../../components/AppText';
 import { useSettings } from '../../context/SettingsContext';
 import { useRouter } from 'expo-router';
-import { removeItem, getItem } from '../../utils/storage';
+import { removeItem, getItem, setItem } from '../../utils/storage';
 import { decodeJwt, UserClaims } from '../../utils/jwt';
+import { DropdownPicker } from '../../components/ui/DropdownPicker';
+import axiosClient from '../../api/axiosClient';
+import { AppAlertStatic } from '../../components/ui/AppAlert';
+
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function SettingsScreen() {
   const { fontScale, setFontScale } = useSettings();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [claims, setClaims] = useState<UserClaims | null>(null);
   const [loading, setLoading] = useState(true);
+  const [offices, setOffices] = useState<any[]>([]);
+  const [overrideOfficeId, setOverrideOfficeId] = useState<string>('');
+
+  useEffect(() => {
+    if (claims?.role === 'SuperAdmin') {
+      axiosClient.get('/Offices').then(res => {
+        if (res.data.isSuccess) {
+          setOffices(res.data.data);
+        }
+      }).catch(e => console.warn(e));
+      
+      getItem('saas_override_office_id').then(val => {
+        if (val) setOverrideOfficeId(val);
+      });
+    }
+  }, [claims]);
+
+  const handleOfficeSwitch = async (val: string) => {
+    if (val === 'DEFAULT') {
+      await removeItem('saas_override_office_id');
+      setOverrideOfficeId('');
+    } else {
+      await setItem('saas_override_office_id', val);
+      setOverrideOfficeId(val);
+    }
+    
+    // Clear all cached data so the new office data is fetched freshly
+    queryClient.clear();
+    
+    AppAlertStatic.alert("Context Switched", "Data refreshed for new context.");
+    router.replace('/(tabs)/dashboard');
+  };
 
   useEffect(() => {
     async function loadUserData() {
@@ -92,9 +130,23 @@ export default function SettingsScreen() {
         <View style={styles.infoRow}>
           <AppText style={styles.infoLabel}>Office ID</AppText>
           <AppText style={styles.infoValueSub} numberOfLines={1} ellipsizeMode="tail">
-            {claims?.officeId || 'N/A'}
+            {overrideOfficeId || claims?.officeId || 'N/A'}
           </AppText>
         </View>
+
+        {claims?.role === 'SuperAdmin' && (
+          <View style={{ marginTop: 16 }}>
+            <DropdownPicker
+              label="Switch Active Office (Super Admin)"
+              options={[
+                { label: 'Default (My Office)', value: 'DEFAULT' },
+                ...offices.filter(o => o.id !== claims.officeId).map(o => ({ label: o.name, value: o.id }))
+              ]}
+              selectedValue={overrideOfficeId || 'DEFAULT'}
+              onSelect={(val) => handleOfficeSwitch(val as string)}
+            />
+          </View>
+        )}
       </View>
 
       {/* Appearance Section */}

@@ -220,7 +220,7 @@ export default function TaskDetailScreen() {
               <Text style={styles.assigneeLabel}>Target Date:</Text>
               <View style={[styles.assigneeBadge, { backgroundColor: '#E0F2FE' }]}>
                 <Text style={[styles.assigneeText, { color: '#0369A1' }]}>
-                  {task.targetDate ? new Date(task.targetDate).toLocaleDateString() : 'Not Set'}
+                  {task.targetDate ? new Date(task.targetDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'Not Set'}
                 </Text>
               </View>
             </View>

@@ -76,7 +76,7 @@ export function RouteListView({ refreshing, onRefresh }: RouteListViewProps) {
   const renderHeader = () => (
     <View>
       <Text style={styles.title}>Active Routes</Text>
-      <Text style={styles.subtitle}>Select a dispatched route for {filterDate} to begin driving and navigating.</Text>
+      <Text style={styles.subtitle}>Select a dispatched route for {new Date(filterDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })} to begin driving and navigating.</Text>
 
       {/* Filters */}
       <View style={styles.filtersContainer}>
@@ -84,7 +84,7 @@ export function RouteListView({ refreshing, onRefresh }: RouteListViewProps) {
           <DatePickerField
             label="Date"
             date={new Date(filterDate)}
-            onChange={(d) => setFilterDate(d.toISOString().split('T')[0])}
+            onChange={(d) => setFilterDate(d.toISOString())}
           />
         </View>
         <View style={{ flex: 1, marginLeft: 8 }}>
@@ -101,7 +101,7 @@ export function RouteListView({ refreshing, onRefresh }: RouteListViewProps) {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>No routes match your filters for {filterDate}.</Text>
+      <Text style={styles.emptyText}>No routes match your filters for {new Date(filterDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}.</Text>
     </View>
   );
 

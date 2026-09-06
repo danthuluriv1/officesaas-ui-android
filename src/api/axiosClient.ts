@@ -22,6 +22,10 @@ axiosClient.interceptors.request.use(
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      const overrideOfficeId = await getItem("saas_override_office_id");
+      if (overrideOfficeId && config.headers) {
+        config.headers['X-Office-Id'] = overrideOfficeId;
+      }
     } catch (e) {}
     return config;
   },

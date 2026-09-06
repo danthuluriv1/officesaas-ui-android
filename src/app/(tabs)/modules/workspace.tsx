@@ -158,7 +158,7 @@ export default function WorkspaceIndexScreen() {
                         styles.dateText, 
                         new Date(task.targetDate) < new Date() && task.status !== 'Completed' ? styles.overdueDate : null
                       ]}>
-                        📅 {new Date(task.targetDate).toLocaleDateString()}
+                        📅 {new Date(task.targetDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}
                       </Text>
                     </View>
                   ) : null}

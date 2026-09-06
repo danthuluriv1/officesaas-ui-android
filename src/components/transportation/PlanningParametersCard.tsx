@@ -25,7 +25,7 @@ export function PlanningParametersCard({
             label="Target Dispatch Date"
             date={new Date(selectedRouteDate)}
             onChange={(date) => {
-              const dateString = date.toISOString().split('T')[0];
+              const dateString = date.toISOString();
               onSetSelectedRouteDate(dateString);
             }}
           />

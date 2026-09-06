@@ -6,14 +6,80 @@ import { View, ActivityIndicator } from 'react-native';
 import { SettingsProvider } from '../context/SettingsContext';
 import Toast from 'react-native-toast-message';
 
-import { AppAlert, appAlertRef } from '../components/ui/AppAlert';
+import { AppAlert, appAlertRef, AppAlertStatic } from '../components/ui/AppAlert';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
+import { useShareIntent } from 'expo-share-intent';
+import { ExpenseModal } from '../components/finance/ExpenseModal';
+
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+function ShareIntentListener() {
+  const { hasShareIntent, shareIntent, resetShareIntent, error } = useShareIntent();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [sharedFileObj, setSharedFileObj] = useState<any>(null);
+
+  useEffect(() => {
+    if (hasShareIntent && shareIntent && shareIntent.files && shareIntent.files.length > 0) {
+      handleSharedFile(shareIntent.files[0]);
+    }
+  }, [hasShareIntent, shareIntent]);
+
+  const handleSharedFile = async (file: any) => {
+    setSharedFileObj({
+      uri: file.path,
+      name: file.fileName || 'receipt.jpg',
+      type: file.mimeType?.includes('pdf') ? 'document' : 'image',
+      mimeType: file.mimeType || 'image/jpeg'
+    });
+    
+    AppAlertStatic.alert("Processing Receipt", "Extracting details with AI...", []);
+    try {
+        const formData = new FormData();
+        formData.append('file', {
+           uri: file.path,
+           name: file.fileName || 'receipt.jpg',
+           type: file.mimeType || 'image/jpeg'
+        } as any);
+
+        const res = await axiosClient.post('/Financials/extract-receipt', formData, {
+           headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        if (res.data.isSuccess) {
+           AppAlertStatic.close();
+           setExtractedData(res.data.data);
+           setModalVisible(true);
+        } else {
+           AppAlertStatic.alert("Extraction Failed", "Could not parse receipt.");
+        }
+    } catch(e) {
+        console.error(e);
+        AppAlertStatic.alert("Extraction Failed", "Could not connect to AI service.");
+    } finally {
+        resetShareIntent();
+    }
+  };
+
+  return (
+    <>
+       {modalVisible && (
+          <ExpenseModal 
+             visible={modalVisible} 
+             onClose={() => { setModalVisible(false); setSharedFileObj(null); setExtractedData(null); }} 
+             onSuccess={() => { setModalVisible(false); setSharedFileObj(null); setExtractedData(null); }}
+             initialData={extractedData} 
+             initialFile={sharedFileObj}
+          />
+       )}
+    </>
+  )
+}
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -68,6 +134,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="(tabs)" />
         </Stack>
+        <ShareIntentListener />
         <Toast />
         <AppAlert ref={appAlertRef} />
       </SettingsProvider>

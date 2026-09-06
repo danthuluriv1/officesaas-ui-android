@@ -15,6 +15,10 @@ export const OrderService = {
     return await axiosClient.post('/Billing/orders', orderPayload);
   },
 
+  updateOrder: async (id: string, orderPayload: any) => {
+    return await axiosClient.put(`/Billing/orders/${id}`, orderPayload);
+  },
+
   getParties: async (type: 'Client' | 'Vendor') => {
     const endpoint = type === 'Client' ? '/Clients' : '/Vendors';
     const res = await axiosClient.get<ApiResponse<PaginatedResponse<Party> | Party[]>>(endpoint, { params: { pageSize: 50 } });

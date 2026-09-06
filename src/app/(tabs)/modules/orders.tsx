@@ -4,6 +4,7 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, 
 import { router } from 'expo-router';
 import { OrderService } from '../../../api/orderService';
 import { OrderFormModal } from '../../../components/orders/OrderFormModal';
+import { DatePickerField } from '../../../components/ui/DatePickerField';
 
 import type { Order } from '../../../types';
 
@@ -70,7 +71,7 @@ export default function OrdersScreen() {
       <View style={styles.cardHeader}>
         <View>
           <Text style={styles.orderId}>{item.orderNumber || 'Unknown'}</Text>
-          <Text style={styles.date}>{item.startDate ? new Date(item.startDate).toLocaleDateString() : ''}</Text>
+          <Text style={styles.date}>{item.startDate ? new Date(item.startDate).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' }) : ''}</Text>
         </View>
         <View style={[styles.badge, item.status === 'Completed' ? styles.badgeSuccess : styles.badgePending]}>
           <Text style={[styles.badgeText, item.status === 'Completed' ? styles.badgeSuccessText : styles.badgePendingText]}>
@@ -96,13 +97,21 @@ export default function OrdersScreen() {
           clearButtonMode="while-editing"
         />
         <View style={styles.dateFilterRow}>
-          <View style={styles.dateInputWrapper}>
-            <Text style={styles.dateLabel}>From:</Text>
-            <TextInput style={styles.dateInput} placeholder="YYYY-MM-DD" value={fromDate} onChangeText={setFromDate} />
+          <View style={{ flex: 1 }}>
+            <DatePickerField 
+              label="From:"
+              date={fromDate ? new Date(fromDate) : null} 
+              onChange={(d) => setFromDate(d.toISOString())} 
+              placeholder="DD/MM/YYYY" 
+            />
           </View>
-          <View style={styles.dateInputWrapper}>
-            <Text style={styles.dateLabel}>To:</Text>
-            <TextInput style={styles.dateInput} placeholder="YYYY-MM-DD" value={toDate} onChangeText={setToDate} />
+          <View style={{ flex: 1 }}>
+            <DatePickerField 
+              label="To:"
+              date={toDate ? new Date(toDate) : null} 
+              onChange={(d) => setToDate(d.toISOString())} 
+              placeholder="DD/MM/YYYY" 
+            />
           </View>
         </View>
       </View>
