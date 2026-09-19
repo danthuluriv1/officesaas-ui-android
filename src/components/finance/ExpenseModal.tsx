@@ -135,7 +135,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({ visible, onClose, on
   };
 
   const handleAddJournalEntry = async () => {
-    if (!jeAmount || !jeCategory || !jePaidTo || !jeDesc) {
+    if (!jeAmount || !jeCategory || !jePaidTo) {
       AppAlertStatic.alert('Error', 'Please fill all required fields');
       return;
     }

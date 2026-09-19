@@ -352,10 +352,16 @@ export default function DashboardScreen() {
               {shortcuts.filter(item => {
                 if (userRole === 'SuperAdmin' || userRole === 'OfficeAdmin') return true;
                 if (!modulePermissions) return true; // Show all if permissions not loaded yet
-                const roleModules = modulePermissions[userRole] || [];
+                const roleMap: Record<string, string> = {
+                  SuperAdmin: '0', OfficeAdmin: '1', OperationsManager: '2', FinanceManager: '3', 
+                  HRManager: '4', SalesManager: '5', TransportationManager: '6', Driver: '7', StandarEmployee: '8'
+                };
+                const roleKey = roleMap[userRole] || userRole;
+                const roleModules = modulePermissions[roleKey] || [];
                 // Map shortcut IDs back to their actual module IDs for permission checking
                 let moduleId = item.id;
                 if (moduleId === 'directory') moduleId = 'employees';
+                if (moduleId === 'my-office') moduleId = 'myoffice';
                 if (moduleId === 'addExpense' || moduleId === 'postPayment') moduleId = 'finance';
                 return roleModules.includes(moduleId);
               }).map(item => (

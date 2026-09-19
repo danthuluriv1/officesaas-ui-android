@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { router } from 'expo-router';
 import { setItem } from '../utils/storage';
 import axiosClient from '../api/axiosClient';
@@ -51,8 +51,11 @@ export default function LoginScreen() {
     >
       <View style={styles.formContainer}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>OfficeSaaS</Text>
-          <Text style={styles.subtitle}>Welcome back</Text>
+          <Image 
+            source={require('../../assets/images/icon.png')} 
+            style={{ width: 140, height: 140, marginBottom: 24, alignSelf: 'center', borderRadius: 28 }} 
+            resizeMode="contain"
+          />
         </View>
 
         <View style={styles.inputContainer}>
