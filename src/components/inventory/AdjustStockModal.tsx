@@ -19,13 +19,14 @@ interface AdjustStockModalProps {
   onClose: () => void;
   onSuccess: () => void;
   stockLevels: StockLevel[];
+  initialItemId?: string;
 }
 
-export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({ visible, onClose, onSuccess, stockLevels }) => {
+export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({ visible, onClose, onSuccess, stockLevels, initialItemId }) => {
   const [submitting, setSubmitting] = useState(false);
   const [vendors, setVendors] = useState<Party[]>([]);
   
-  const [adjustItemId, setAdjustItemId] = useState('');
+  const [adjustItemId, setAdjustItemId] = useState(initialItemId || '');
   const [adjustType, setAdjustType] = useState<number>(0);
   const [adjustVendorId, setAdjustVendorId] = useState('');
   const [adjustUnitPrice, setAdjustUnitPrice] = useState('');
@@ -43,8 +44,11 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({ visible, onC
         }
       };
       loadVendors();
+      if (initialItemId) {
+        setAdjustItemId(initialItemId);
+      }
     }
-  }, [visible]);
+  }, [visible, initialItemId]);
 
   const handleAdjust = async () => {
     if (!adjustItemId || !adjustQty) {
@@ -90,12 +94,28 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({ visible, onC
             <TouchableOpacity onPress={onClose}><Text style={styles.closeText}>Cancel</Text></TouchableOpacity>
           </View>
 
-          <DropdownPicker label="Inventory Item *" options={itemOptions} selectedValue={adjustItemId} onSelect={(val) => setAdjustItemId(val as string)} />
+          <DropdownPicker label="Inventory Item *" options={itemOptions} selectedValue={adjustItemId} onSelect={(val) => setAdjustItemId(val as string)} searchable={true} />
+          
+          {(() => {
+            const selectedStockItem = stockLevels.find(s => s.entityId === adjustItemId);
+            if (!selectedStockItem) return null;
+            return (
+              <View style={styles.stockInfoCard}>
+                <Text style={styles.stockInfoLabel}>Current Status</Text>
+                <View style={styles.stockInfoRow}>
+                  <Text style={styles.stockInfoText}>Quantity: <Text style={styles.stockInfoValue}>{selectedStockItem.quantityOnHand} {selectedStockItem.unitOfMeasure}</Text></Text>
+                  {selectedStockItem.unitPrice != null && (
+                    <Text style={styles.stockInfoText}>Price: <Text style={styles.stockInfoValue}>${selectedStockItem.unitPrice.toFixed(2)}</Text></Text>
+                  )}
+                </View>
+              </View>
+            );
+          })()}
           
           <DropdownPicker label="Type *" options={ADJUSTMENT_TYPES} selectedValue={adjustType} onSelect={(val) => setAdjustType(val as number)} />
           
           {adjustType === 0 && (
-            <DropdownPicker label="Vendor (Optional)" options={vendorOptions} selectedValue={adjustVendorId} onSelect={(val) => setAdjustVendorId(val as string)} />
+            <DropdownPicker label="Vendor (Optional)" options={vendorOptions} selectedValue={adjustVendorId} onSelect={(val) => setAdjustVendorId(val as string)} searchable={true} />
           )}
 
           <Text style={styles.inputLabel}>Quantity Change *</Text>
@@ -172,4 +192,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
+  stockInfoCard: {
+    backgroundColor: '#EFF6FF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  stockInfoLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1E3A8A',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  stockInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stockInfoText: {
+    fontSize: 14,
+    color: '#1E40AF',
+  },
+  stockInfoValue: {
+    fontWeight: '700',
+  }
 });

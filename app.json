@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "officesaas-android",
+    "name": "OfficeSaaS",
     "slug": "office-saas",
-    "version": "1.0.0",
+    "version": "1.0.01",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "officesaasandroid",
@@ -55,9 +55,33 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1febec62-5b1b-471f-a3ae-4872e644716c"
+        "projectId": "1febec62-5b1b-471f-a3ae-4872e644716c",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ShareExtension",
+                  "bundleIdentifier": "undefined.share-extension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.undefined"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
       }
     },
-    "owner": "danthuluriv1s-team"
+    "owner": "danthuluriv1s-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1febec62-5b1b-471f-a3ae-4872e644716c",
+      "fallbackToCacheTimeout": 0
+    }
   }
 }

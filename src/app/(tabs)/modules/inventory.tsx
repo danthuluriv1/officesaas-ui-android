@@ -15,6 +15,8 @@ export default function InventoryScreen() {
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [selectedAdjustItemId, setSelectedAdjustItemId] = useState<string | undefined>(undefined);
 
   const { data: stockLevels = [], isLoading: loading, isRefetching: refreshing, refetch: fetchData } = useInventory();
 
@@ -26,21 +28,50 @@ export default function InventoryScreen() {
     return qty.toString();
   };
 
-  const renderItem = ({ item }: { item: StockLevel }) => (
-    <View style={styles.card}>
-      <View style={styles.avatar}>
-        <Ionicons name="layers-outline" size={24} color="#4f46e5" />
-      </View>
-      <View style={styles.info}>
-        <Text style={styles.cardTitle}>{item.name}</Text>
-        <Text style={styles.infoText}>₹{item.unitPrice ? item.unitPrice.toLocaleString('en-IN') : '0'} / {item.unitOfMeasure}</Text>
-      </View>
-      <View style={styles.rightSection}>
-        <Text style={styles.cardSubtitle}>{formatQuantity(item.quantityOnHand, item.unitOfMeasure)}</Text>
-        <Text style={styles.unitText}>{item.unitOfMeasure}</Text>
-      </View>
-    </View>
-  );
+  const renderItem = ({ item }: { item: StockLevel }) => {
+    const isExpanded = expandedItemId === item.entityId;
+    return (
+      <TouchableOpacity 
+        style={[styles.card, isExpanded && styles.cardExpanded]} 
+        onPress={() => setExpandedItemId(isExpanded ? null : item.entityId)} 
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardMain}>
+          <View style={styles.avatar}>
+            <Ionicons name="layers-outline" size={24} color="#4f46e5" />
+          </View>
+          <View style={styles.info}>
+            <Text style={styles.cardTitle}>{item.name}</Text>
+            <Text style={styles.infoText}>₹{item.unitPrice ? item.unitPrice.toLocaleString('en-IN') : '0'} / {item.unitOfMeasure}</Text>
+          </View>
+          <View style={styles.rightSection}>
+            <Text style={styles.cardSubtitle}>{formatQuantity(item.quantityOnHand, item.unitOfMeasure)}</Text>
+            <Text style={styles.unitText}>{item.unitOfMeasure}</Text>
+          </View>
+        </View>
+        {isExpanded && (
+          <View style={styles.expandedContent}>
+            <View style={styles.expandedDivider} />
+            <Text style={styles.expandedLabel}>Stock Information</Text>
+            <View style={styles.expandedRow}>
+               <Text style={styles.expandedStat}>Available: {formatQuantity(item.quantityOnHand, item.unitOfMeasure)} {item.unitOfMeasure}</Text>
+               <Text style={styles.expandedStat}>Value: ₹{item.unitPrice ? (item.unitPrice * item.quantityOnHand).toLocaleString('en-IN') : '0'}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.inlineAdjustBtn} 
+              onPress={() => {
+                setSelectedAdjustItemId(item.entityId);
+                setIsAdjustModalOpen(true);
+              }}
+            >
+              <Ionicons name="create-outline" size={16} color="#fff" style={{marginRight: 6}} />
+              <Text style={styles.inlineAdjustBtnText}>Adjust Stock</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const filteredStockLevels = stockLevels.filter((item: any) => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -92,9 +123,10 @@ export default function InventoryScreen() {
       {isAdjustModalOpen && (
         <AdjustStockModal 
           visible={isAdjustModalOpen}
-          onClose={() => setIsAdjustModalOpen(false)}
+          onClose={() => { setIsAdjustModalOpen(false); setSelectedAdjustItemId(undefined); }}
           onSuccess={fetchData}
           stockLevels={stockLevels}
+          initialItemId={selectedAdjustItemId}
         />
       )}
     </View>
@@ -153,17 +185,63 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: Theme.colors.surface,
-    padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Theme.colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+    overflow: 'hidden',
+  },
+  cardExpanded: {
+    borderColor: '#93C5FD',
+  },
+  cardMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  expandedContent: {
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    paddingTop: 0,
+  },
+  expandedDivider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginBottom: 12,
+  },
+  expandedLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  expandedRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  expandedStat: {
+    fontSize: 14,
+    color: '#334155',
+    fontWeight: '500',
+  },
+  inlineAdjustBtn: {
+    backgroundColor: '#2563EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  inlineAdjustBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
   avatar: {
     width: 48,

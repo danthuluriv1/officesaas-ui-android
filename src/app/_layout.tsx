@@ -14,6 +14,8 @@ const queryClient = new QueryClient();
 
 import { useShareIntent } from 'expo-share-intent';
 import { ExpenseModal } from '../components/finance/ExpenseModal';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -85,6 +87,24 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    // 1. Check for native app updates (Google Play) - Only in standalone builds!
+    if (Platform.OS === 'android' && Constants.appOwnership !== 'expo') {
+      try {
+        const { default: SpInAppUpdates, IAUUpdateKind } = require('sp-react-native-in-app-updates');
+        const inAppUpdates = new SpInAppUpdates(false);
+        inAppUpdates.checkNeedsUpdate().then((result: any) => {
+          if (result.shouldUpdate) {
+            inAppUpdates.startUpdate({
+              updateType: IAUUpdateKind.IMMEDIATE,
+            });
+          }
+        }).catch((err: any) => console.log('Update check failed:', err));
+      } catch (e) {
+        console.log('InAppUpdates not available in this environment');
+      }
+    }
+
+    // 2. Check Auth Status
     async function checkAuth() {
       try {
         const token = await getItem('saas_token');

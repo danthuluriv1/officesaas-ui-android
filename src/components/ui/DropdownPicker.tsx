@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, StyleProp, ViewStyle, Dimensions } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, StyleProp, ViewStyle, Dimensions, TextInput } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -15,6 +15,7 @@ export interface DropdownPickerProps<T = string | number> {
   onSelect: (value: T) => void;
   placeholder?: string;
   containerStyle?: StyleProp<ViewStyle>;
+  searchable?: boolean;
 }
 
 export function DropdownPicker<T = string | number>({
@@ -24,14 +25,22 @@ export function DropdownPicker<T = string | number>({
   onSelect,
   placeholder = 'Select...',
   containerStyle,
+  searchable = false,
 }: DropdownPickerProps<T>) {
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  
   const selectedOption = options?.find((o) => o && o.value === selectedValue);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchText) return options;
+    return options?.filter(o => o?.label?.toLowerCase().includes(searchText.toLowerCase()));
+  }, [options, searchable, searchText]);
 
   return (
     <View style={[styles.dropdownContainer, containerStyle]}>
       {!!label && <Text style={styles.inputLabel}>{label}</Text>}
-      <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity style={styles.dropdownTrigger} onPress={() => { setSearchText(''); setModalVisible(true); }}>
         <Text style={selectedOption ? styles.dropdownText : styles.dropdownPlaceholder}>
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
@@ -43,9 +52,21 @@ export function DropdownPicker<T = string | number>({
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
-          <View style={styles.dropdownMenu}>
+          <TouchableOpacity activeOpacity={1} style={styles.dropdownMenu} onPress={e => e.stopPropagation()}>
+            {searchable && (
+              <View style={styles.searchContainer}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search..."
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  autoFocus={true}
+                  autoCapitalize="none"
+                />
+              </View>
+            )}
             <ScrollView showsVerticalScrollIndicator={false}>
-              {options?.map((item, index) => {
+              {filteredOptions?.map((item, index) => {
                 if (!item) return null;
                 return (
                   <TouchableOpacity
@@ -66,7 +87,7 @@ export function DropdownPicker<T = string | number>({
                 );
               })}
             </ScrollView>
-          </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     </View>
@@ -124,5 +145,17 @@ const styles = StyleSheet.create({
   dropdownItemTextSelected: {
     color: '#2563EB',
     fontWeight: '700',
+  },
+  searchContainer: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  searchInput: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827',
   },
 });
