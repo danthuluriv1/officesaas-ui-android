@@ -3,7 +3,7 @@ import { getItem, setItem, removeItem } from "../utils/storage";
 import { router, Href } from "expo-router";
 import { AppAlertStatic } from "../components/ui/AppAlert";
 
-const baseURL = "https://local.office-saas.com/api/v1";
+const baseURL = "https://devapi.office-saas.com/api/v1";
 
 const axiosClient = axios.create({
   baseURL: baseURL,
