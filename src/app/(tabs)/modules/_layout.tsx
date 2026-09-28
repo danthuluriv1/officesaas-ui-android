@@ -1,9 +1,10 @@
 import { Stack, router } from 'expo-router';
+import { NotificationBell } from '../../../components/NotificationBell';
 
 export default function ModulesLayout() {
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ title: 'Modules', headerShown: false }} />
+      <Stack.Screen name="index" options={{ title: 'Modules', headerRight: () => <NotificationBell /> }} />
       <Stack.Screen name="directory" options={{ headerShown: false }} />
       <Stack.Screen name="inventory" options={{ title: 'Inventory' }} />
       <Stack.Screen name="products" options={{ title: 'Products' }} />

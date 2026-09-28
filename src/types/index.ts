@@ -1,4 +1,4 @@
-export interface ApiResponse<T> {
+﻿export interface ApiResponse<T> {
   isSuccess: boolean;
   data: T;
   message?: string;
@@ -134,8 +134,22 @@ export interface LedgerEntry {
   sourceModule?: string;
   sourceEntityId?: string;
   accountCategory?: string;
+    paidTo?: string;
   transactionNumber?: string;
 }
+export interface JournalEntryItem {
+  id: string;
+  entityId: string;
+  referenceNumber: string;
+  postingDate: string;
+  totalAmount: number;
+  expenseCategory: string;
+  description: string;
+  paidTo: string;
+  mode: string;
+  referenceNumberOrUpi?: string;
+}
+
 
 export interface Vehicle {
   entityId: string;
@@ -178,4 +192,5 @@ export interface OptimizeResponse {
   totalDistanceKm: number;
   routes: VehicleRoute[];
 }
+
 

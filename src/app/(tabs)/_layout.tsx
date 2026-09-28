@@ -11,8 +11,7 @@ export default function TabsLayout() {
     <NotificationProvider>
       <Tabs screenOptions={{ 
         tabBarActiveTintColor: '#2563EB', 
-        headerShown: true,
-        headerRight: () => <NotificationBell />
+        headerShown: false
       }}>
         <Tabs.Screen
           name="dashboard"
@@ -25,6 +24,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="modules"
           options={{
+            headerShown: false,
             title: 'Modules',
             tabBarLabel: 'Modules',
             tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" size={size} color={color} />,

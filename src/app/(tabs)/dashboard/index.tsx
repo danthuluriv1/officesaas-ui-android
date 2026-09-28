@@ -1,19 +1,21 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, Platform, Modal, RefreshControl } from 'react-native';
-import { AppText as Text } from '../../components/AppText';
+import { Ionicons } from '@expo/vector-icons';
+import { AppText as Text } from '../../../components/AppText';
 import { useRouter, useFocusEffect, Href } from 'expo-router';
-import axiosClient from '../../api/axiosClient';
+import axiosClient from '../../../api/axiosClient';
 import { LineChart } from 'react-native-chart-kit';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getItem } from '../../utils/storage';
-import { decodeJwt } from '../../utils/jwt';
+import { getItem } from '../../../utils/storage';
+import { decodeJwt } from '../../../utils/jwt';
 
 interface ShortcutConfig {
   id: string;
   title: string;
   icon: string;
+  iconColor?: string;
   bgColor: string;
   route: string;
   params?: any;
@@ -21,12 +23,12 @@ interface ShortcutConfig {
 }
 
 const DEFAULT_SHORTCUTS: ShortcutConfig[] = [
-  { id: 'inbox', title: 'Inbox', icon: '📥', bgColor: '#DBEAFE', route: '/(tabs)/modules/inbox', showBadge: true },
-  { id: 'workspace', title: 'Workspace', icon: '📋', bgColor: '#F3E8FF', route: '/(tabs)/modules/workspace' },
-  { id: 'addExpense', title: 'Add Expense', icon: '💸', bgColor: '#FEE2E2', route: '/(tabs)/modules/finance', params: { action: 'addExpense' } },
-  { id: 'postPayment', title: 'Post Payment', icon: '💳', bgColor: '#D1FAE5', route: '/(tabs)/modules/finance', params: { action: 'addPayment' } },
-  { id: 'attendance', title: 'Attendance', icon: '⏱️', bgColor: '#E0F2FE', route: '/(tabs)/modules/attendance' },
-  { id: 'directory', title: 'Directory', icon: '👥', bgColor: '#D1FAE5', route: '/(tabs)/modules/directory' },
+  { id: 'inbox', title: 'Inbox', icon: 'mail', bgColor: '#DBEAFE', iconColor: '#1D4ED8', route: '/(tabs)/modules/inbox', showBadge: true },
+  { id: 'workspace', title: 'Workspace', icon: 'chatbubbles', bgColor: '#F3E8FF', iconColor: '#7E22CE', route: '/(tabs)/modules/workspace' },
+  { id: 'addExpense', title: 'Add Expense', icon: 'add-circle-outline', bgColor: '#FEE2E2', iconColor: '#B91C1C', route: '/(tabs)/modules/finance', params: { action: 'addExpense' } },
+  { id: 'postPayment', title: 'Post Payment', icon: 'arrow-down-circle-outline', bgColor: '#D1FAE5', iconColor: '#047857', route: '/(tabs)/modules/finance', params: { action: 'addPayment' } },
+  { id: 'attendance', title: 'Attendance', icon: 'time', bgColor: '#E0F2FE', iconColor: '#0369A1', route: '/(tabs)/modules/attendance' },
+  { id: 'directory', title: 'Directory', icon: 'id-card', bgColor: '#FEF3C7', iconColor: '#B45309', route: '/(tabs)/modules/directory' },
 ];
 
 interface ChartDataItem {
@@ -344,7 +346,7 @@ export default function DashboardScreen() {
             <View style={styles.shortcutsHeaderRow}>
               <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Quick Shortcuts</Text>
               <TouchableOpacity onPress={handleOpenCustomize} style={styles.reorderBtn}>
-                <Text style={styles.reorderBtnText}>⚙️ Reorder</Text>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}><Ionicons name="options" size={16} color="#4338CA" /><Text style={[styles.reorderBtnText, {marginLeft: 4}]}>Reorder</Text></View>
               </TouchableOpacity>
             </View>
             
@@ -371,7 +373,7 @@ export default function DashboardScreen() {
                   onPress={() => router.push(item.params ? { pathname: item.route, params: item.params } as Href : item.route as Href)}
                 >
                   <View style={[styles.actionIcon, { backgroundColor: item.bgColor }]}>
-                    <Text style={styles.iconText}>{item.icon}</Text>
+                    <Ionicons name={item.icon as any} size={28} color={item.iconColor || '#4B5563'} />
                     {item.showBadge && unreadCount > 0 && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>

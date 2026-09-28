@@ -17,7 +17,8 @@
         "foregroundImage": "./assets/images/icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.danthuluriv1steam.officesaas"
+      "package": "com.danthuluriv1steam.officesaas",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "515568221384",
+    "project_id": "officesaas-89f2d",
+    "storage_bucket": "officesaas-89f2d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:515568221384:android:8041d90f43905f15b3b9fd",
+        "android_client_info": {
+          "package_name": "com.danthuluriv1steam.officesaas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM_qEdMqm0ZAdN4Bt6gyXnA-zcmjvqDA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

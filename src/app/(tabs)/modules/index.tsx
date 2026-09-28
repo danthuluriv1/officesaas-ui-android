@@ -4,24 +4,25 @@ import { AppText as Text } from '../../../components/AppText';
 import { router, useFocusEffect } from 'expo-router';
 import axiosClient from '../../../api/axiosClient';
 import { useNotifications } from '../../../context/NotificationContext';
+import { Ionicons } from '@expo/vector-icons';
 import { getItem } from '../../../utils/storage';
 import { decodeJwt } from '../../../utils/jwt';
 
 const modules = [
-  { id: 'clients', title: 'Clients', description: 'Manage client profiles and details', icon: '🏢', color: '#FEE2E2' },
-  { id: 'vendors', title: 'Vendors', description: 'Manage vendor profiles and details', icon: '🤝', color: '#FEF08A' },
-  { id: 'directory', title: 'Staff Directory', description: 'Manage employee profiles and roles', icon: '👤', color: '#DBEAFE' },
-  { id: 'inventory', title: 'Inventory', description: 'Track stock levels and stock items', icon: '📦', color: '#FEF3C7' },
-  { id: 'products', title: 'Products', description: 'Manage your product catalog', icon: '🏷️', color: '#E0E7FF' },
-  { id: 'orders', title: 'Orders', description: 'View and manage sales orders', icon: '🛒', color: '#DCFCE7' },
-  { id: 'finance', title: 'Finance', description: 'Access financial ledgers and accounting', icon: '💰', color: '#FCE7F3' },
-  { id: 'attendance', title: 'Attendance', description: 'Log time and view attendance records', icon: '⏱️', color: '#E0F2FE' },
-  { id: 'inbox', title: 'Inbox', description: 'View and manage incoming messages', icon: '📥', color: '#EDE9FE' },
-  { id: 'workspace', title: 'Team Workspace', description: 'Collaborate with your team', icon: '👥', color: '#F3E8FF' },
-  { id: 'transportation', title: 'Transportation', description: 'Manage vehicles and optimize delivery paths', icon: '🚚', color: '#DCFCE7' },
-  { id: 'drivers', title: 'Drivers', description: 'View assigned active routes and navigate', icon: '🚗', color: '#EFF6FF' },
-  { id: 'my-office', title: 'My Office', description: 'Manage office profile and settings', icon: '🏛️', color: '#E0E7FF' },
-  { id: 'documents', title: 'Documents', description: 'Store and search documents', icon: '📄', color: '#FEF3C7' },
+  { id: 'clients', title: 'Clients', description: 'Manage client profiles and details', icon: 'people', color: '#FEE2E2', iconColor: '#B91C1C' },
+  { id: 'vendors', title: 'Vendors', description: 'Manage vendor profiles and details', icon: 'business', color: '#FEF08A', iconColor: '#A16207' },
+  { id: 'directory', title: 'Staff Directory', description: 'Manage employee profiles and roles', icon: 'id-card', color: '#DBEAFE', iconColor: '#1D4ED8' },
+  { id: 'inventory', title: 'Inventory', description: 'Track stock levels and stock items', icon: 'cube', color: '#FEF3C7', iconColor: '#B45309' },
+  { id: 'products', title: 'Products', description: 'Manage your product catalog', icon: 'pricetags', color: '#E0E7FF', iconColor: '#4338CA' },
+  { id: 'orders', title: 'Orders', description: 'View and manage sales orders', icon: 'cart', color: '#DCFCE7', iconColor: '#15803D' },
+  { id: 'finance', title: 'Finance', description: 'Access financial ledgers and accounting', icon: 'wallet', color: '#FCE7F3', iconColor: '#BE185D' },
+  { id: 'attendance', title: 'Attendance', description: 'Log time and view attendance records', icon: 'time', color: '#E0F2FE', iconColor: '#0369A1' },
+  { id: 'inbox', title: 'Inbox', description: 'View and manage incoming messages', icon: 'mail', color: '#EDE9FE', iconColor: '#6D28D9' },
+  { id: 'workspace', title: 'Team Workspace', description: 'Collaborate with your team', icon: 'chatbubbles', color: '#F3E8FF', iconColor: '#7E22CE' },
+  { id: 'transportation', title: 'Transportation', description: 'Manage vehicles and optimize delivery paths', icon: 'bus', color: '#DCFCE7', iconColor: '#15803D' },
+  { id: 'drivers', title: 'Drivers', description: 'View assigned active routes and navigate', icon: 'navigate', color: '#EFF6FF', iconColor: '#1D4ED8' },
+  { id: 'my-office', title: 'My Office', description: 'Manage office profile and settings', icon: 'settings', color: '#E0E7FF', iconColor: '#4338CA' },
+  { id: 'documents', title: 'Documents', description: 'Store and search documents', icon: 'document-text', color: '#FEF3C7', iconColor: '#B45309' },
 ];
 
 export default function ModulesScreen() {
@@ -99,7 +100,7 @@ export default function ModulesScreen() {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <Text style={styles.header}>All Modules</Text>
+      
       <View style={styles.grid}>
         {visibleModules.map((mod) => (
           <TouchableOpacity
@@ -108,7 +109,7 @@ export default function ModulesScreen() {
             onPress={() => router.push(`/(tabs)/modules/${mod.id}` as any)}
           >
             <View style={[styles.iconContainer, { backgroundColor: mod.color }]}>
-              <Text style={styles.icon}>{mod.icon}</Text>
+              <Ionicons name={mod.icon as any} size={28} color={mod.iconColor} />
               {mod.id === 'inbox' && unreadCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>

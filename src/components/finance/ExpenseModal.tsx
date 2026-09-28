@@ -12,11 +12,17 @@ import { AttachmentField } from '../ui/AttachmentField';
 import type { FileAttachment } from '../ui/SelectedFilesList';
 
 const EXPENSE_CATEGORIES: DropdownOption<string>[] = [
-  { label: 'Office Rent', value: 'OfficeRent' },
-  { label: 'Utilities & Power', value: 'Utilities' },
-  { label: 'SaaS Subscriptions', value: 'SoftwareSaaS' },
-  { label: 'Marketing Expense', value: 'Marketing' },
-  { label: 'Logistics & Supply', value: 'Logistics' },
+  { label: 'Rent & Lease', value: 'RentAndLease' },
+  { label: 'Utilities (Power, Water, Internet)', value: 'Utilities' },
+  { label: 'Office Supplies & Stationery', value: 'OfficeSupplies' },
+  { label: 'Travel & Transportation', value: 'Travel' },
+  { label: 'Maintenance & Repairs', value: 'Maintenance' },
+  { label: 'Legal & Professional Fees', value: 'ProfessionalFees' },
+  { label: 'Advertising & Marketing', value: 'Marketing' },
+  { label: 'Raw Materials & Inventory', value: 'RawMaterials' },
+  { label: 'Shipping & Logistics', value: 'Logistics' },
+  { label: 'Insurance & Taxes', value: 'InsuranceTaxes' },
+  { label: 'Miscellaneous / General', value: 'General' },
 ];
 
 const PAYMENT_MODES: DropdownOption<number>[] = [

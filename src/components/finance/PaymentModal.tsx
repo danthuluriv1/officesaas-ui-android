@@ -41,6 +41,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
   const [payMode, setPayMode] = useState<number>(2); 
   const [payRef, setPayRef] = useState('');
   const [payRemarks, setPayRemarks] = useState('');
+  const [payPaidBy, setPayPaidBy] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
 
   useEffect(() => {
@@ -65,6 +66,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
   }, [visible]);
 
   const handleAddPayment = async () => {
+    if (!payPaidBy.trim()) {
+      AppAlertStatic.alert('Validation', 'Please select a client or enter the name of who made the payment.');
+      return;
+    }
     if (!payAmount) {
       AppAlertStatic.alert('Error', 'Please fill Amount');
       return;
@@ -78,7 +83,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
         amount: parseFloat(payAmount),
         paymentDate: payDate.toISOString(),
         mode: payMode,
-        remarks: payRemarks
+        remarks: payRemarks,
+        paidBy: payPaidBy
       };
       const response = await FinanceService.createPayment(payload);
       if (response.status >= 400) throw new Error('Failed to post payment');
@@ -89,7 +95,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
         await documentService.uploadMultipleDocuments(attachments, 7, entityId.toString(), 5);
       }
       
-      setPayAmount(''); setPayRef(''); setPayRemarks(''); setPayOrderId(''); setPayClientId(''); setAttachments([]);
+      setPayAmount(''); setPayRef(''); setPayRemarks(''); setPayOrderId(''); setPayClientId(''); setPayPaidBy(''); setAttachments([]);
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -127,13 +133,30 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ visible, onClose, on
              <ActivityIndicator color="#2563EB" style={{ marginBottom: 16 }} />
           ) : (
             <>
-              <DropdownPicker label="Select Client (Optional)" options={clientOptions} selectedValue={payClientId} onSelect={(val) => { setPayClientId(val as string); setPayOrderId(''); }} />
+              <DropdownPicker label="Select Client (Optional)" options={clientOptions} selectedValue={payClientId} onSelect={(val) => {
+              const clientName = clients.find(c => c.entityId === val)?.companyName || '';
+              setPayClientId(val as string);
+              setPayOrderId('');
+              setPayPaidBy(clientName);
+            }} />
               
               <DropdownPicker label="Link Order (Optional)" options={orderOptions} selectedValue={payOrderId} onSelect={(val) => {
                   setPayOrderId(val as string);
                   const o = filteredOrders.find(x => x.entityId === val);
                   if (o) setPayAmount(o.totalGrandAmount.toString());
                 }} />
+            </>
+          )}
+
+          {!payClientId && (
+            <>
+              <Text style={styles.inputLabel}>Received From <Text style={{ color: '#EF4444' }}>*</Text></Text>
+              <TextInput
+                style={[styles.input, !payPaidBy && { borderColor: '#EF4444' }]}
+                value={payPaidBy}
+                onChangeText={setPayPaidBy}
+                placeholder="e.g. John Doe / Walk-in Customer"
+              />
             </>
           )}
 

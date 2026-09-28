@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { AppText } from '../../components/AppText';
-import { useSettings } from '../../context/SettingsContext';
+import { AppText } from '../../../components/AppText';
+import { useSettings } from '../../../context/SettingsContext';
 import { useRouter } from 'expo-router';
-import { removeItem, getItem, setItem } from '../../utils/storage';
-import { decodeJwt, UserClaims } from '../../utils/jwt';
-import { DropdownPicker } from '../../components/ui/DropdownPicker';
-import axiosClient from '../../api/axiosClient';
-import { AppAlertStatic } from '../../components/ui/AppAlert';
+import { removeItem, getItem, setItem } from '../../../utils/storage';
+import { decodeJwt, UserClaims } from '../../../utils/jwt';
+import { DropdownPicker } from '../../../components/ui/DropdownPicker';
+import axiosClient from '../../../api/axiosClient';
+import { AppAlertStatic } from '../../../components/ui/AppAlert';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -83,7 +83,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <AppText style={styles.title}>Settings</AppText>
+      
 
       {/* User Information Section */}
       <View style={styles.section}>
